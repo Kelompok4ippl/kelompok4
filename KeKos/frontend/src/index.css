@@ -1,0 +1,208 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Warna & font dari Figma. Font dimuat lewat Google Fonts di <head> tiap halaman. */
+:root {
+  --black: rgba(0, 0, 0, 1);
+  --boulder: rgba(117, 117, 117, 1);
+  --gallery: rgba(239, 239, 239, 1);
+  --white: rgba(255, 255, 255, 1);
+
+  --page-bg: #f8f9ff;
+  --text-muted: #545454;
+  --text-dark: #080808;
+  --border-soft: #c9c9cf;
+  --border-panel: #919191;
+  --link: #7d7fff;
+  --error: #ff0000;
+  --star: #ffb918;
+  --badge-bg: #ffebe3;
+  --badge-text: #a43016;
+
+  --font-heading: "Ruwudu", Helvetica, serif;
+  --font-stencil: "Saira Stencil One", Helvetica, sans-serif;
+  --font-body: "Roboto", Helvetica, Arial, sans-serif;
+  --font-display: "Inter", Helvetica, Arial, sans-serif;
+  --font-accent: "Rokkitt", Helvetica, serif;
+
+  --roboto-bold-font-family: "Roboto", Helvetica;
+  --roboto-bold-font-weight: 700;
+  --roboto-bold-font-size: 32px;
+  --roboto-regular-font-family: "Roboto", Helvetica;
+  --roboto-regular-font-weight: 400;
+  --roboto-regular-font-size: 16px;
+}
+
+/* Reset & dasar global untuk semua halaman KeKos */
+/* Reset ringan (pengganti meyer-reset dari CDN, supaya tetap jalan offline) */
+html, body, div, span, h1, h2, h3, h4, h5, h6, p, a, img, ul, ol, li,
+form, fieldset, legend, label, button, input, article, section, main {
+  margin: 0;
+  padding: 0;
+  font-size: 100%;
+  font-weight: inherit;
+  vertical-align: baseline;
+}
+ul, ol { list-style: none; }
+fieldset { min-width: 0; }
+
+* {
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--black);
+  background-color: var(--page-bg);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+/* border & background tombol sudah di-reset oleh Tailwind (preflight) */
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Slider budget di dashboard: track abu-abu, bagian terisi hitam, tombol putih bergaris hitam */
+.kekos-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, #000 var(--fill, 50%), #d9d9d9 var(--fill, 50%));
+  cursor: pointer;
+}
+.kekos-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 27px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid #000;
+}
+.kekos-range::-moz-range-thumb {
+  width: 23px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid #000;
+}
+
+/* Animasi scroll di dashboard (lihat hooks/useScrollEffects.js).
+   Hanya aktif setelah JS siap (.reveal-ready), jadi konten tetap terlihat kalau JS gagal. */
+.reveal-ready [data-reveal] {
+  opacity: 0;
+  filter: blur(4px);
+  transition:
+    opacity 0.8s ease,
+    filter 0.8s ease,
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal-ready [data-reveal="up"] { transform: translateY(60px); }
+.reveal-ready [data-reveal="left"] { transform: translateX(-90px); }
+.reveal-ready [data-reveal="right"] { transform: translateX(90px); }
+.reveal-ready [data-reveal="zoom"] { transform: scale(0.85); }
+.reveal-ready [data-reveal="card"] { transform: translateY(80px) rotate(3deg) scale(0.92); }
+.reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+/* Garis zig-zag hero tergambar dari paling kiri, menyentuh puncak menara gereja, lalu ke kanan */
+.reveal-ready .kekos-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: kekos-draw 2.6s 0.4s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+}
+@keyframes kekos-draw { to { stroke-dashoffset: 0; } }
+[data-parallax] { will-change: transform; }
+
+/* Panel form pemilik muncul dari kanan */
+@keyframes kekos-drawer-in {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.kekos-drawer { animation: kekos-drawer-in 0.25s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .kekos-drawer { animation: none; }
+}
+
+/* ---------- Komponen adaptasi dari 21st.dev (components/ui) ---------- */
+
+/* TextRotate: tiap huruf naik masuk bergantian */
+.kekos-rotate {
+  display: inline-flex;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  vertical-align: bottom;
+}
+.kekos-rotate [aria-hidden] > span {
+  display: inline-block;
+  animation: kekos-rotate-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  animation-delay: calc(var(--i) * 30ms);
+}
+@keyframes kekos-rotate-in {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kekos-rotate [aria-hidden] > span { animation: none; }
+}
+
+/* Login pemilik kos (belum tersedia) terpental kembali ke form login */
+@keyframes kekos-bounce-back {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(40px); }
+  40% { transform: translateX(-24px); }
+  60% { transform: translateX(14px); }
+  80% { transform: translateX(-6px); }
+  100% { transform: translateX(0); }
+}
+.kekos-bounce-back { animation: kekos-bounce-back 0.6s cubic-bezier(0.3, 0.7, 0.4, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .kekos-bounce-back { animation: none; }
+}
