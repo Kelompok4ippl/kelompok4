@@ -34,6 +34,9 @@ router.post("/register", async (req, res) => {
   if (!nama || !email || !password) {
     return sendError(res, 400, "DATA_TIDAK_LENGKAP", "Nama, email, dan password wajib diisi");
   }
+  if (email !== email.toLowerCase()) {
+    return sendError(res, 400, "EMAIL_HURUF_BESAR", "Email harus memakai huruf kecil semua");
+  }
   if (password.length < 6) return sendError(res, 400, "PASSWORD_PENDEK", "Password minimal 6 karakter");
   if (noHp && !/^\+?[0-9]{9,15}$/.test(noHp)) return sendError(res, 400, "NO_HP_TIDAK_VALID", "Nomor telepon tidak valid");
 

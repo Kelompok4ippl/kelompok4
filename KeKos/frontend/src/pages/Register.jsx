@@ -55,6 +55,10 @@ export default function Register() {
       setError("Format email tidak valid");
       return;
     }
+    if (email !== email.toLowerCase()) {
+      setError("Email harus memakai huruf kecil semua");
+      return;
+    }
     if (!/^\+?[0-9]{9,15}$/.test(telepon.replace(/[\s-]/g, ""))) {
       setError("Nomor telepon tidak valid");
       return;
