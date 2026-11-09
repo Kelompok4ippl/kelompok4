@@ -13,14 +13,26 @@ export default function Navbar({ notifOpenInitially = false }) {
   const [open, setOpen] = useState(notifOpenInitially);
   const notif = useApi(open ? "/notifikasi" : null);
   const ref = useRef(null);
+  const buttonRef = useRef(null);
   const unread = notif.data?.some((n) => !n.read);
 
-  // Tutup dropdown kalau klik di luar
+  // Tutup dropdown kalau klik/fokus pindah ke luar, atau Esc (fokus kembali ke tombol)
   useEffect(() => {
     if (!open) return;
     const close = (e) => ref.current && !ref.current.contains(e.target) && setOpen(false);
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      buttonRef.current?.focus();
+    };
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener("focusin", close);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("focusin", close);
+      document.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   // Tandai sudah dibaca setelah dropdown dibuka
@@ -38,15 +50,17 @@ export default function Navbar({ notifOpenInitially = false }) {
       <nav className="flex items-center gap-4 font-serif4 text-base sm:gap-10 sm:text-lg" aria-label="Menu utama">
         <div ref={ref} className="relative">
           <button
+            ref={buttonRef}
             type="button"
             aria-expanded={open}
+            aria-controls="notif-panel"
             onClick={() => setOpen((v) => !v)}
             className={`relative z-[2] rounded-t-[14px] px-3 py-2 sm:-mx-3 ${open ? "bg-white text-black" : ""}`}
           >
             notifikasi
           </button>
           {open && (
-            <div className="absolute left-0 top-[38px] z-[1] w-[min(390px,calc(100vw-32px))] rounded-[14px] rounded-tl-none bg-white text-black shadow-[0_8px_24px_#00000040] sm:-left-3">
+            <div id="notif-panel" className="absolute left-0 top-[38px] z-[1] w-[min(390px,calc(100vw-32px))] rounded-[14px] rounded-tl-none bg-white text-black shadow-[0_8px_24px_#00000040] sm:-left-3">
               <NotificationList items={notif.data} loading={notif.loading} error={notif.error} />
             </div>
           )}

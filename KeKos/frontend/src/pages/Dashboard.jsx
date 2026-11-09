@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Navbar from "../components/Navbar.jsx";
 import KosCard from "../components/KosCard.jsx";
 import KosMap from "../components/KosMap.jsx";
+import Modal from "../components/Modal.jsx";
 import TextRotate from "../components/ui/TextRotate.jsx";
 import InteractiveHoverButton from "../components/ui/InteractiveHoverButton.jsx";
 import { useApi } from "../hooks/useApi.js";
@@ -171,18 +172,24 @@ export default function Dashboard({ notifOpenInitially = false }) {
       {/* Latar memudar, peta membesar dari tengah; saat ditutup keduanya dibalik */}
       <AnimatePresence>
         {mapOpen && (
-          <motion.div
-            role="dialog"
-            aria-label="Peta persebaran kos"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000cc] p-4"
-            onClick={() => setMapOpen(false)}
+          <Modal
+            label="Peta persebaran kos"
+            onClose={() => setMapOpen(false)}
+            className="items-center justify-center bg-[#000000cc] p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
           >
+            {/* Tombol Tutup ditaruh pertama supaya jadi fokus awal saat peta dibuka */}
+            <button
+              type="button"
+              onClick={() => setMapOpen(false)}
+              className="absolute right-6 top-6 z-[1000] rounded-full bg-white px-4 py-2 font-poppins text-sm shadow"
+            >
+              Tutup
+            </button>
             <motion.div
-              onClick={(e) => e.stopPropagation()}
               className="h-full max-h-[860px] w-full max-w-[1400px] overflow-hidden rounded-xl"
               initial={{ scale: 0.9, y: 40 }}
               animate={{ scale: 1, y: 0 }}
@@ -191,10 +198,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
             >
               <KosMap kos={allKos.data || []} interactive className="h-full w-full" />
             </motion.div>
-            <button type="button" className="absolute right-6 top-6 z-[1000] rounded-full bg-white px-4 py-2 font-poppins text-sm shadow">
-              Tutup
-            </button>
-          </motion.div>
+          </Modal>
         )}
       </AnimatePresence>
 
@@ -210,7 +214,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
         <div data-reveal="up" style={{ "--reveal-delay": "200ms" }} className="mx-auto mt-11 max-w-[1052px] rounded-xl border-[3px] border-black bg-white p-4 shadow-[0_4px_10px_#00000040] sm:px-[15px] sm:pb-4 sm:pt-[14px]">
           <div className="flex flex-col gap-8 md:flex-row md:justify-between">
             <div className="md:w-[491px]">
-              <p className="font-inter text-[11px] font-bold tracking-wide text-[#555]">KOS TYPE</p>
+              <p className="font-inter text-xs font-bold tracking-wide text-muted">KOS TYPE</p>
               <div className="mt-3 inline-flex rounded-md bg-[#f1f1f1] p-[5px]" role="group" aria-label="Tipe kos">
                 {TYPES.map((t) => (
                   <button
@@ -218,8 +222,8 @@ export default function Dashboard({ notifOpenInitially = false }) {
                     type="button"
                     aria-pressed={type === t.value}
                     onClick={() => setType(t.value)}
-                    className={`relative h-6 w-[65px] rounded font-inter text-[11px] ${
-                      type === t.value ? "font-semibold text-black" : "text-[#555]"
+                    className={`relative h-6 w-[65px] rounded font-inter text-xs ${
+                      type === t.value ? "font-semibold text-black" : "text-muted"
                     }`}
                   >
                     {/* Satu latar putih yang meluncur ke tombol terpilih (layoutId yang sama) */}
@@ -236,7 +240,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
               </div>
 
               <div className="mt-2 flex items-center justify-between">
-                <label htmlFor="budget" className="font-inter text-[9px] font-bold tracking-wide text-[#555]">
+                <label htmlFor="budget" className="font-inter text-xs font-bold tracking-wide text-muted">
                   MONTHLY BUDGET
                 </label>
                 <span className="font-inter text-xs font-semibold text-black">
@@ -255,7 +259,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
                 className="kekos-range mt-5 w-full"
                 style={{ "--fill": `${fill}%` }}
               />
-              <div className="mt-1 flex justify-between font-inter text-[10px] text-[#666]">
+              <div className="mt-1 flex justify-between font-inter text-xs text-muted">
                 <span>Rp 500,000</span>
                 <span>Rp 1,500,000</span>
                 <span>Rp 3,000,000&gt;</span>
@@ -263,7 +267,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
             </div>
 
             <div className="md:w-[399px]">
-              <p className="font-inter text-[11px] font-bold tracking-wide text-[#555]">FILTER</p>
+              <p className="font-inter text-xs font-bold tracking-wide text-muted">FILTER</p>
               <div className="mt-3 flex flex-wrap gap-x-2.5 gap-y-3">
                 {FACILITIES.map((f) => {
                   const on = facilities.includes(f.value);
@@ -274,7 +278,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
                       aria-pressed={on}
                       onClick={() => toggleFacility(f.value)}
                       whileTap={{ scale: 0.9 }}
-                      className={`inline-flex h-[26px] items-center gap-1.5 rounded-full border px-[11px] font-inter text-[11px] ${
+                      className={`inline-flex h-[26px] items-center gap-1.5 rounded-full border px-[11px] font-inter text-xs ${
                         on ? "border-[#8f8f8f] bg-[#d9d9d9] text-black" : "border-[#8f8f8f] bg-white text-black"
                       }`}
                     >
@@ -297,7 +301,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
                 type="button"
                 onClick={() => setApplied({ type, maxPrice, facilities })}
                 whileTap={{ scale: 0.97 }}
-                className="mt-4 h-10 w-full max-w-[308px] rounded-md bg-black font-inter text-sm font-medium text-white hover:bg-[#222] md:ml-11"
+                className="mt-4 h-10 w-full max-w-[308px] rounded-md bg-black font-inter text-sm font-medium text-white hover:bg-primary-hover md:ml-11"
               >
                 Apply Filters (
                 {/* Angka baru turun masuk setiap jumlah hasil berubah */}
@@ -322,7 +326,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari kos dekat kampus"
-              className="min-w-0 flex-1 bg-transparent font-poppins text-base text-black outline-none placeholder:text-[#555] sm:text-xl"
+              className="min-w-0 flex-1 bg-transparent font-poppins text-base text-black outline-none placeholder:text-muted sm:text-xl"
             />
           </label>
         </div>
@@ -333,7 +337,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
               type="button"
               onClick={() => slide(-1)}
               aria-label="Geser ke kiri"
-              className="absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black text-2xl text-white shadow-[0_4px_10px_#00000059] hover:bg-[#333]"
+              className="absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black text-2xl text-white shadow-[0_4px_10px_#00000059] hover:bg-primary-hover"
             >
               ‹
             </button>
@@ -343,7 +347,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
               type="button"
               onClick={() => slide(1)}
               aria-label="Geser ke kanan"
-              className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black text-2xl text-white shadow-[0_4px_10px_#00000059] hover:bg-[#333]"
+              className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black text-2xl text-white shadow-[0_4px_10px_#00000059] hover:bg-primary-hover"
             >
               ›
             </button>
@@ -354,10 +358,10 @@ export default function Dashboard({ notifOpenInitially = false }) {
           layoutScroll
           className="relative flex cursor-grab snap-x snap-mandatory gap-[38px] overflow-x-auto scroll-smooth scroll-px-1 px-1 pb-6 pt-2 [scrollbar-width:thin] select-none sm:scroll-px-4 sm:px-4"
         >
-          {kosList.loading && <p className="font-roboto text-sm text-[#555]">Memuat kos...</p>}
-          {kosList.error && <p className="font-roboto text-sm text-[#c00]">{kosList.error}</p>}
+          {kosList.loading && <p className="font-roboto text-sm text-muted">Memuat kos...</p>}
+          {kosList.error && <p className="font-roboto text-sm text-danger">{kosList.error}</p>}
           {kosList.data?.length === 0 && (
-            <p className="font-roboto text-sm text-[#555]">Tidak ada kos yang cocok. Coba ubah filter.</p>
+            <p className="font-roboto text-sm text-muted">Tidak ada kos yang cocok. Coba ubah filter.</p>
           )}
           {/* Saat hasil filter berubah: kartu yang hilang mengecil & memudar, kartu yang tersisa meluncur
               ke posisi barunya. Kartu baru tetap muncul lewat data-reveal (CSS) di dalamnya. */}
@@ -382,7 +386,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
                   </Link>
                   <Link
                     to={`/kos/${kos.id}/booking`}
-                    className="w-[95px] rounded-md bg-black py-1 text-center font-roboto text-sm leading-[19px] text-white hover:bg-[#333]"
+                    className="w-[95px] rounded-md bg-black py-1 text-center font-roboto text-sm leading-[19px] text-white hover:bg-primary-hover"
                   >
                     Booking
                     <br />

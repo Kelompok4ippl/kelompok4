@@ -13,7 +13,7 @@ function Row({ icon, iconClass = "h-5 w-5", label, value, children }) {
       </span>
       <div className="min-w-0 flex-1 border-b border-[#9b9b9b] pb-1">
         {children || (
-          <div className="flex items-end justify-between gap-2 font-roboto text-xs text-[#333]">
+          <div className="flex items-end justify-between gap-2 font-roboto text-xs text-muted">
             <span>{label}</span>
             {value != null && <span className="text-black">{value}</span>}
           </div>
@@ -29,7 +29,7 @@ export default function KosInfo({ ownerName, totalRooms, roomsLeft, roomType, fa
   return (
     <div className="flex flex-col gap-3">
       <Row icon={accountIcon} iconClass="h-[26px] w-[26px]">
-        <p className="font-roboto text-[11px] text-[#555]">Pemilik</p>
+        <p className="font-roboto text-xs text-muted">Pemilik</p>
         <p className="font-roboto text-xs text-black">{ownerName || "-"}</p>
       </Row>
       {totalRooms != null && (
@@ -42,7 +42,7 @@ export default function KosInfo({ ownerName, totalRooms, roomsLeft, roomType, fa
           <img src={facilityIcon} alt="" className="h-6 w-6" />
         </span>
         <div className="flex flex-1 flex-wrap items-center gap-2">
-          <span className="mr-1 font-roboto text-xs text-[#333]">Fasilitas</span>
+          <span className="mr-1 font-roboto text-xs text-muted">Fasilitas</span>
           {facilities.map((f) => (
             <Facility key={f} name={f} boxed />
           ))}

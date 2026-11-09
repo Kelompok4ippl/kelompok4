@@ -18,9 +18,20 @@ export default function BookingKos() {
   const [selectedId, setSelectedId] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [justBooked, setJustBooked] = useState(false);
 
   if (kos.loading || bookings.loading) return <p className="p-10 font-poppins">Memuat...</p>;
-  if (kos.error) return <p className="p-10 font-poppins text-[#c00]">{kos.error}</p>;
+  if (kos.error) return <p className="p-10 font-poppins text-danger">{kos.error}</p>;
+  // Tanpa riwayat booking, status tidak bisa diketahui; jangan izinkan booking ganda
+  if (bookings.error)
+    return (
+      <div className="p-10 font-poppins">
+        <p className="text-danger">Gagal memuat status booking: {bookings.error}</p>
+        <button type="button" onClick={bookings.reload} className="mt-4 rounded-lg bg-black px-4 py-2 text-sm text-white">
+          Coba lagi
+        </button>
+      </div>
+    );
 
   const data = kos.data;
   // Booking aktif terakhir (menunggu / diterima); booking yang ditolak boleh diulang
@@ -36,6 +47,7 @@ export default function BookingKos() {
     setError("");
     try {
       await api("/booking", { method: "POST", body: { kamar_id: selected.id } });
+      setJustBooked(true);
       bookings.reload();
     } catch (err) {
       setError(err.message);
@@ -45,8 +57,16 @@ export default function BookingKos() {
   };
 
   const status = active?.status;
-  const buttonText = status === "diterima" ? "Telah Terbooking" : status === "menunggu" ? "Proses Booking" : "Booking Sekarang";
-  const roomLetter = selected?.type.replace(/^Tipe\s*/i, "") || "Standar";
+  const buttonText = status === "diterima" ? "Telah Terbooking" : status === "menunggu" ? "Menunggu konfirmasi pemilik" : "Booking Sekarang";
+  // [judul baris 1, judul baris 2, keterangan] sesuai status booking lalu ketersediaan kamar terpilih
+  const [title1, title2, subtitle] =
+    status === "diterima"
+      ? ["Booking diterima", "Lanjut pembayaran", "Hubungi pemilik lewat WhatsApp di bawah untuk pembayaran."]
+      : status === "menunggu"
+        ? ["Booking terkirim", "Menunggu pemilik", "Pemilik akan mengonfirmasi booking kamu. Pantau di notifikasi."]
+        : selected?.available > 0
+          ? ["Kos tersedia", "Siap dibooking", "Kamar masih tersedia untuk anda booking"]
+          : ["Kamar penuh", "Pilih tipe lain", "Tipe kamar ini sudah penuh."];
   const waNumber = active?.ownerPhone?.replace(/\D/g, "").replace(/^0/, "62");
 
   return (
@@ -81,31 +101,36 @@ export default function BookingKos() {
         <div className="mt-12 grid gap-10 md:grid-cols-[331px_1fr] md:gap-[53px]">
           <div>
             <p className="font-inter text-[30px] font-semibold leading-[39px] text-black">
-              {selected?.available > 0 || status ? "Kos tersedia" : "Kamar penuh"}
+              {title1}
               <br />
-              {selected?.available > 0 || status ? "Siap dibooking" : "Pilih tipe lain"}
+              {title2}
             </p>
-            <p className="mt-1 font-inter text-base font-semibold leading-[23px] text-[#8a8a8a]">
-              Kamar masih tersedia untuk anda booking
+            <p className="mt-1 font-inter text-base font-semibold leading-[23px] text-muted">
+              {subtitle}
             </p>
             <button
               type="button"
               onClick={book}
               disabled={Boolean(status) || saving || !selected || selected.available <= 0}
-              className="mt-[50px] h-[42px] w-full rounded-lg bg-black font-roboto text-lg font-medium text-white enabled:hover:bg-[#222] disabled:cursor-default"
+              className="mt-[50px] h-[42px] w-full rounded-lg bg-black font-roboto text-lg font-medium text-white enabled:hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
             >
               {saving ? "Memproses..." : buttonText}
             </button>
-            <p className="mt-4 font-inter text-[11px] font-bold leading-[15px] text-black">
+            <p className="mt-4 font-inter text-sm font-bold text-black">
               Booking gratis, tanpa pembayaran!
               <br />
               Pesan kos sekarang tanpa perlu membayar.
             </p>
-            {error && <p className="mt-3 font-inter text-xs text-[#c00]">{error}</p>}
-            {rejected && <p className="mt-3 font-inter text-xs text-[#a43016]">Booking sebelumnya ditolak pemilik. Kamu bisa memilih kamar lain.</p>}
+            {justBooked && status === "menunggu" && (
+              <p role="status" className="mt-3 rounded-lg bg-green-50 px-3 py-2 font-inter text-sm font-semibold text-green-800">
+                Booking berhasil dikirim! Kamu akan dapat notifikasi saat pemilik mengonfirmasi.
+              </p>
+            )}
+            {error && <p className="mt-3 font-inter text-sm text-danger">{error}</p>}
+            {rejected && <p className="mt-3 font-inter text-sm text-[#a43016]">Booking sebelumnya ditolak pemilik. Kamu bisa memilih kamar lain.</p>}
             {status === "diterima" && (
               <div className="mx-auto mt-[60px] w-[240px] rounded-lg bg-black px-4 py-3 text-center text-white shadow-[0_0_12px_#00000080]">
-                <p className="font-roboto text-[10px] leading-[12px]">
+                <p className="font-roboto text-sm">
                   Silahkan hubungi contact di bawah ini untuk melanjutakan pembayaran
                 </p>
                 {waNumber ? (
@@ -124,13 +149,13 @@ export default function BookingKos() {
             <p className="mt-2 font-poppins text-xl text-black">
               <span className="font-semibold">{rupiah(selected?.price ?? data.price)}</span> / bulan
             </p>
-            <p className="mt-1 max-w-[200px] font-serif4 text-[11px] leading-[15px] text-[#777]">{selected?.description}</p>
+            <p className="mt-1 max-w-[200px] font-serif4 text-sm text-muted">{selected?.description}</p>
             <h4 className="mt-6 border-l-[3px] border-black pl-3 font-poppins text-lg font-semibold text-black">Informasi</h4>
             <div className="mt-5">
               <KosInfo
                 ownerName={data.owner.name}
                 roomsLeft={selected?.available ?? data.roomsLeft}
-                roomType={status ? roomLetter : "Standar"}
+                roomType={selected?.type ?? "-"}
                 facilities={selected?.facilities ?? data.facilities}
               />
             </div>

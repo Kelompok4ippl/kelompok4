@@ -14,7 +14,7 @@ const PropertyCard = ({ kos }) => (
       <h3 className="font-['Roboto'] text-base">{kos.name}</h3>
       <p className="whitespace-nowrap font-['Roboto'] text-[13px]">
         {kos.rating} <span className="text-[#ffb918]">★</span>{" "}
-        <span className="text-[#777777]">({kos.reviews})</span>
+        <span className="text-muted">({kos.reviews})</span>
       </p>
     </div>
     <p className="px-1 font-['Roboto'] text-base">{kos.price}</p>

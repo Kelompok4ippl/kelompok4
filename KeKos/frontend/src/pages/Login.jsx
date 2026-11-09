@@ -82,7 +82,7 @@ export default function Login({ initialError = false }) {
     setLoading(true);
     try {
       await login({ email: email.trim(), password });
-      navigate(homeFor());
+      navigate(location.state?.from || homeFor(), { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -97,8 +97,8 @@ export default function Login({ initialError = false }) {
   };
 
   const inputColor = error
-    ? "text-[#ff0000] placeholder:text-[#ff0000]"
-    : "text-black placeholder:text-[#757575]";
+    ? "text-danger placeholder:text-danger"
+    : "text-black placeholder:text-muted";
 
   return (
     <main className="mx-auto flex min-h-screen max-w-[1354px] flex-col-reverse bg-[#f8f9ff] px-0 py-0 min-[1100px]:my-14 min-[1100px]:min-h-[911px] min-[1100px]:flex-row min-[1100px]:px-4">
@@ -124,7 +124,7 @@ export default function Login({ initialError = false }) {
         <h1 id="login-title" className="font-['Ruwudu'] text-[26px] text-black sm:text-[32px]">
           Selamat Datang Kembali
         </h1>
-        <p className="mt-3 font-['Ruwudu'] text-[17px] text-[#545454] sm:text-xl">
+        <p className="mt-3 font-['Ruwudu'] text-[17px] text-muted sm:text-xl">
           Masukkan akun kamu untuk mengakses dashboard.
         </p>
 
@@ -166,7 +166,7 @@ export default function Login({ initialError = false }) {
             <img className="mt-0.5 h-5 w-5 shrink-0" alt="" src={alertIcon} />
             <div>
               <p className="font-['Saira_Stencil_One'] text-[15px] text-black">{roles[role].title}</p>
-              <p className="mt-1.5 font-['Ruwudu'] text-[15px] text-[#545454]">{roles[role].desc}</p>
+              <p className="mt-1.5 font-['Ruwudu'] text-[15px] text-muted">{roles[role].desc}</p>
               {roles[role].soon && (
                 <span className="mt-2 inline-block rounded-full bg-[#fff4d6] px-2.5 py-0.5 font-['Roboto'] text-xs text-[#8a6100]">
                 
@@ -220,7 +220,7 @@ export default function Login({ initialError = false }) {
           )}
 
           {error && (
-            <p role="alert" className="ml-[34px] mt-[3px] font-['Rokkitt'] text-[10px] text-[#ff0000]">
+            <p role="alert" className="ml-[34px] mt-[3px] font-['Rokkitt'] text-xs text-danger">
               {error}*
             </p>
           )}
@@ -235,7 +235,7 @@ export default function Login({ initialError = false }) {
           <button
             type="submit"
             disabled={loading}
-            className="mt-8 flex h-[35px] w-full items-center justify-center gap-2.5 rounded-[9px] bg-[linear-gradient(163deg,#f6f6f6_0%,#1f1f1f_100%)] font-['Roboto'] text-sm text-white shadow-[0px_4px_4px_#00000040] hover:brightness-90 disabled:cursor-wait disabled:opacity-70 min-[1100px]:mt-[55px]"
+            className="mt-8 flex h-[35px] w-full items-center justify-center gap-2.5 rounded-[9px] bg-primary font-['Roboto'] text-sm text-white shadow-[0px_4px_4px_#00000040] hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70 min-[1100px]:mt-[55px]"
           >
             {loading ? "MEMPROSES..." : "MASUK"}
             <span aria-hidden="true" className="text-[25px] leading-5">→</span>

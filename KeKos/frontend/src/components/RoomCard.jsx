@@ -24,7 +24,7 @@ export default function RoomCard({ room, selected, onSelect, headerAction, note,
           </p>
           {headerAction}
         </div>
-        <p className="mt-0.5 max-w-[210px] font-serif4 text-[11px] leading-[15px] text-[#777]">{room.description}</p>
+        <p className="mt-0.5 max-w-[210px] font-serif4 text-sm text-muted">{room.description}</p>
         <div className="mt-2.5 flex flex-wrap gap-2">
           {room.facilities.map((f) => (
             <Facility key={f} name={f} boxed />
@@ -37,12 +37,12 @@ export default function RoomCard({ room, selected, onSelect, headerAction, note,
             <span className="font-semibold">{rupiah(room.price)}</span>/bln
           </p>
           {footerAction || (
-            <span className="rounded-full border border-[#555] px-4 py-0.5 font-poppins text-[10px]">
+            <span className="rounded-full border border-muted px-4 py-0.5 font-poppins text-xs">
               {room.available > 0 ? `${room.available} Tersedia` : "Penuh"}
             </span>
           )}
         </div>
-        {note && <p className="mt-2 text-right font-poppins text-[11px] font-semibold text-[#a43016]">{note}</p>}
+        {note && <p className="mt-2 text-right font-poppins text-xs font-semibold text-[#a43016]">{note}</p>}
       </div>
     </Wrapper>
   );

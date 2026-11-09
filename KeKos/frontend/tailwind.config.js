@@ -9,6 +9,10 @@ export default {
         boulder: "var(--boulder)",
         gallery: "var(--gallery)",
         white: "var(--white)",
+        // Token warna: pakai ini, jangan hex lepas di komponen
+        primary: { DEFAULT: "#000000", hover: "#222222" },
+        muted: "#555555", // teks sekunder; kontras 7,4:1 di latar putih
+        danger: "#b91c1c", // error & aksi hapus; kontras 6,5:1 di latar putih
       },
       fontFamily: {
         "roboto-bold": "var(--roboto-bold-font-family)",

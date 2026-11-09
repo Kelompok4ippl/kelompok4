@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api/client.js";
 import { getCurrentUser } from "../api/auth.js";
 import { useApi } from "../hooks/useApi.js";
 import Gallery from "../components/Gallery.jsx";
 import KosInfo from "../components/KosInfo.jsx";
+import RoomCard from "../components/RoomCard.jsx";
+import Modal from "../components/Modal.jsx";
 import { rupiah, timeAgo } from "../lib/format.js";
 
 import backIcon from "../assets/arrow-back.svg";
@@ -69,9 +71,9 @@ function ReviewForm({ kosId, onDone }) {
         onChange={(e) => setIsi(e.target.value)}
         rows={3}
         placeholder="Ceritakan pengalamanmu tinggal di kos ini"
-        className="rounded-lg border border-[#c9c9cf] p-2 font-inter text-xs outline-none focus:border-[#4a90e2]"
+        className="rounded-lg border border-[#c9c9cf] p-2 font-inter text-sm outline-none focus:border-[#4a90e2]"
       />
-      {error && <p className="font-inter text-xs text-[#c00]">{error}</p>}
+      {error && <p className="font-inter text-sm text-danger">{error}</p>}
       <button type="submit" disabled={saving || !isi.trim()} className="self-end rounded-full bg-black px-4 py-1.5 font-poppins text-xs text-white disabled:opacity-50">
         {saving ? "Mengirim..." : "Kirim Ulasan"}
       </button>
@@ -95,7 +97,7 @@ function ReviewItem({ review, canDelete, onDelete, onOpen, className = "" }) {
           <button
             type="button"
             onClick={onDelete}
-            className="shrink-0 rounded-full border border-[#c00] px-3 py-1 font-inter text-[11px] font-semibold text-[#c00] hover:bg-[#c00] hover:text-white"
+            className="shrink-0 rounded-full border border-danger px-3 py-1 font-inter text-xs font-semibold text-danger hover:bg-danger hover:text-white"
           >
             Hapus
           </button>
@@ -103,10 +105,10 @@ function ReviewItem({ review, canDelete, onDelete, onOpen, className = "" }) {
       </div>
       <div className="mt-4 flex items-center gap-2">
         <Stars value={review.rating} />
-        <span className="font-inter text-xs text-[#64748b]">{timeAgo(review.createdAt).replace(" yang", "")}</span>
+        <span className="font-inter text-xs text-muted">{timeAgo(review.createdAt).replace(" yang", "")}</span>
       </div>
-      <p className="mt-3 whitespace-pre-line break-words font-inter text-xs leading-[19px] text-[#1e1e1e]">{review.text}</p>
-      <div className="mt-3 flex gap-4 font-inter text-xs text-[#64748b]">
+      <p className="mt-3 whitespace-pre-line break-words font-inter text-sm text-[#1e1e1e]">{review.text}</p>
+      <div className="mt-3 flex gap-4 font-inter text-xs text-muted">
         <span className="inline-flex items-center gap-1">
           <img src={thumbsIcon} alt="" className="h-3.5 w-3.5" /> Membantu ({review.helpful})
         </span>
@@ -120,46 +122,27 @@ function ReviewItem({ review, canDelete, onDelete, onOpen, className = "" }) {
   );
 }
 
-// Popup di tengah layar; tutup dengan tombol ×, klik di luar kotak, atau tombol Esc
+// Popup ulasan: bottom sheet di HP, di tengah layar di desktop (Esc/klik luar/× menutup)
 function ReviewModal({ title, onClose, children }) {
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-    };
-  }, [onClose]);
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-[#00000099] sm:items-center sm:p-4"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[88vh] w-full max-w-[560px] flex-col rounded-t-[20px] bg-white shadow-[0_10px_40px_#00000059] sm:rounded-[20px]"
-      >
+    <Modal label={title} onClose={onClose} className="items-end justify-center bg-[#00000099] sm:items-center sm:p-4">
+      <div className="flex max-h-[88vh] w-full max-w-[560px] flex-col rounded-t-[20px] bg-white shadow-[0_10px_40px_#00000059] sm:rounded-[20px]">
         <div className="flex items-center justify-between gap-4 border-b border-[#e5e5e5] px-6 py-4">
           <h2 className="font-poppins text-lg font-bold text-black">{title}</h2>
-          <button type="button" onClick={onClose} aria-label="Tutup" className="text-2xl leading-none text-[#555] hover:text-black">
+          <button type="button" onClick={onClose} aria-label="Tutup" className="flex h-11 w-11 items-center justify-center text-2xl leading-none text-muted hover:text-black">
             ×
           </button>
         </div>
         <div className="overflow-y-auto px-6 pb-6 pt-3">{children}</div>
       </div>
-    </div>
+    </Modal>
   );
 }
 
 export default function DetailKos() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { data: kos, error, loading, reload } = useApi(`/kos/${id}`);
   const [modal, setModal] = useState(null); // null | "lihat" | "tulis"
   const [deleteError, setDeleteError] = useState("");
@@ -178,13 +161,13 @@ export default function DetailKos() {
   };
 
   if (loading) return <p className="p-10 font-poppins">Memuat...</p>;
-  if (error) return <p className="p-10 font-poppins text-[#c00]">{error}</p>;
+  if (error) return <p className="p-10 font-poppins text-danger">{error}</p>;
 
   const review = kos.reviewList[0];
   const maxCount = Math.max(1, ...kos.ratingDistribution.map((d) => d.count));
 
   return (
-    <main className="mx-auto max-w-[1440px] bg-white px-4 pb-16 pt-6 sm:px-[47px] sm:pt-7">
+    <main className="mx-auto max-w-[1440px] bg-white px-4 pb-28 pt-6 lg:pb-16 sm:px-[47px] sm:pt-7">
       <header className="flex items-center gap-4 sm:-ml-[7px]">
         <button type="button" onClick={() => navigate(-1)} aria-label="Kembali">
           <img src={backIcon} alt="" className="h-6 w-6" />
@@ -202,7 +185,7 @@ export default function DetailKos() {
             ownerName={kos.owner.name}
             totalRooms={kos.totalRooms}
             roomsLeft={kos.roomsLeft}
-            roomType="Standar"
+            roomType={kos.rooms.map((r) => r.type).join(", ") || "-"}
             facilities={kos.facilities}
           />
         </section>
@@ -215,12 +198,13 @@ export default function DetailKos() {
             <p className="font-poppins text-lg leading-[24px]">{kos.address}</p>
           </div>
           <p className="mt-6 font-poppins text-2xl">
+            <span className="block font-inter text-xs text-[#ccc]">Mulai dari</span>
             <span className="font-bold">{kos.price ? rupiah(kos.price) : "-"}</span> / bulan
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-6">
             <ul className="flex w-[204px] flex-col gap-1.5">
               {kos.ratingDistribution.map((d) => (
-                <li key={d.stars} className="flex items-center gap-2 font-inter text-[10px]">
+                <li key={d.stars} className="flex items-center gap-2 font-inter text-xs">
                   <span className="w-2 text-right">{d.stars}</span>
                   <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-white">
                     <span className="block h-full rounded-full bg-[#fbbf24]" style={{ width: `${(d.count / maxCount) * 100}%` }} />
@@ -231,7 +215,7 @@ export default function DetailKos() {
             <div className="border-l border-white pl-4 text-center">
               <p className="font-poppins text-4xl font-semibold">{kos.rating.toFixed(1).replace(".", ",")}</p>
               <Stars value={kos.rating} />
-              <p className="mt-1 font-inter text-[10px]">{kos.reviews} ulasan terverifikasi</p>
+              <p className="mt-1 font-inter text-xs">{kos.reviews} ulasan terverifikasi</p>
             </div>
           </div>
         </section>
@@ -249,7 +233,7 @@ export default function DetailKos() {
                 Tulis Ulasan
               </button>
             ) : (
-              <Link to="/" className="inline-flex items-center gap-3 rounded-full bg-white px-5 py-2.5 font-poppins text-lg font-medium text-black shadow-sm">
+              <Link to="/" state={{ from: location.pathname }} className="inline-flex items-center gap-3 rounded-full bg-white px-5 py-2.5 font-poppins text-lg font-medium text-black shadow-sm">
                 <img src={commentIcon} alt="" className="h-6 w-6" />
                 Tulis Ulasan
               </Link>
@@ -274,9 +258,9 @@ export default function DetailKos() {
               </button>
             </>
           ) : (
-            <p className="mt-6 text-center font-inter text-xs text-[#555]">Belum ada ulasan.</p>
+            <p className="mt-6 text-center font-inter text-sm text-muted">Belum ada ulasan.</p>
           )}
-          {deleteError && !modal && <p className="mt-3 text-center font-inter text-xs text-[#c00]">{deleteError}</p>}
+          {deleteError && !modal && <p className="mt-3 text-center font-inter text-sm text-danger">{deleteError}</p>}
         </section>
 
         {modal && (
@@ -300,8 +284,8 @@ export default function DetailKos() {
                 </button>
               )
             )}
-            {deleteError && <p className="mt-2 font-inter text-xs text-[#c00]">{deleteError}</p>}
-            {kos.reviewList.length === 0 && <p className="mt-4 font-inter text-xs text-[#555]">Belum ada ulasan.</p>}
+            {deleteError && <p className="mt-2 font-inter text-sm text-danger">{deleteError}</p>}
+            {kos.reviewList.length === 0 && <p className="mt-4 font-inter text-sm text-muted">Belum ada ulasan.</p>}
             {kos.reviewList.map((r) => (
               <ReviewItem
                 key={r.id}
@@ -312,6 +296,36 @@ export default function DetailKos() {
               />
             ))}
           </ReviewModal>
+        )}
+      </div>
+
+      <section className="mt-10" aria-labelledby="tipe-kamar">
+        <h2 id="tipe-kamar" className="font-poppins text-lg font-bold text-black">Tipe Kamar</h2>
+        {kos.rooms.length ? (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {kos.rooms.map((room) => (
+              <RoomCard key={room.id} room={room} framed />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 font-inter text-sm text-muted">Belum ada tipe kamar.</p>
+        )}
+      </section>
+
+      {/* Tombol booking menempel di bawah layar HP */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 border-t border-[#e5e5e5] bg-white px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_#0000001a] lg:hidden">
+        <p className="font-poppins text-sm leading-tight text-black">
+          <span className="block font-inter text-xs text-muted">Mulai dari</span>
+          <span className="font-bold">{kos.price ? rupiah(kos.price) : "-"}</span> / bulan
+        </p>
+        {kos.roomsLeft > 0 ? (
+          <Link to={`/kos/${kos.id}/booking`} className="flex h-11 items-center rounded-lg bg-black px-6 font-poppins text-sm font-semibold text-white active:bg-primary-hover">
+            Booking
+          </Link>
+        ) : (
+          <span aria-disabled="true" className="flex h-11 items-center rounded-lg bg-gray-300 px-6 font-poppins text-sm font-semibold text-gray-600">
+            Kamar penuh
+          </span>
         )}
       </div>
     </main>

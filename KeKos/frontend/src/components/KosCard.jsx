@@ -28,13 +28,13 @@ export default function KosCard({ kos, headerAction, showBadge = true, showRatin
         {showRating && (
           <p className="whitespace-nowrap font-roboto text-[13px]">
             {kos.rating} <span className="text-[#ffb918]">★</span>{" "}
-            <span className="text-[#777777]">({kos.reviews})</span>
+            <span className="text-muted">({kos.reviews})</span>
           </p>
         )}
         {headerAction}
       </div>
       {(kos.area || kos.distance) && (
-        <p className="mt-1 flex items-center gap-1 px-1 font-roboto text-[11px] text-[#333]">
+        <p className="mt-1 flex items-center gap-1 px-1 font-roboto text-xs text-muted">
           <img src={locationIcon} alt="" className="h-3.5 w-3.5" />
           {[kos.area, kos.distance].filter(Boolean).join(" • ")}
         </p>

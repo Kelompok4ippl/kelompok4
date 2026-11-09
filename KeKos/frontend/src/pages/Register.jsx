@@ -13,7 +13,7 @@ import eyeOffIcon from "../assets/eye-off.svg";
 const fieldClass =
   "flex h-[37px] items-center gap-[18px] rounded-lg border border-[#c9c9cf] px-2.5 focus-within:border-[#4a90e2]";
 const inputClass =
-  "h-full min-w-0 flex-1 bg-transparent font-['Roboto'] text-base text-black outline-none placeholder:text-[#999999]";
+  "h-full min-w-0 flex-1 bg-transparent font-['Roboto'] text-base text-black outline-none placeholder:text-muted";
 
 const PasswordToggle = ({ shown, onToggle }) => (
   <button
@@ -93,7 +93,7 @@ export default function Register() {
         <h1 id="register-title" className="font-['Ruwudu'] text-[26px] text-black sm:text-[32px]">
           Buat Akun Baru
         </h1>
-        <p className="mt-4 max-w-[437px] font-['Ruwudu'] text-[17px] text-[#555454] sm:text-xl">
+        <p className="mt-4 max-w-[437px] font-['Ruwudu'] text-[17px] text-muted sm:text-xl">
           Buat akun kamu untuk bisa mencari dan membooking kos yang kamu inginkan
         </p>
 
@@ -174,7 +174,7 @@ export default function Register() {
           </div>
 
           {error && (
-            <p role="alert" className="mx-auto mt-[3px] max-w-[261px] font-['Rokkitt'] text-xs text-[#ff0000]">
+            <p role="alert" className="mx-auto mt-[3px] max-w-[261px] font-['Rokkitt'] text-xs text-danger">
               {error}*
             </p>
           )}
@@ -189,7 +189,7 @@ export default function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-[42px] flex h-[35px] w-full items-center justify-center rounded-[9px] bg-[linear-gradient(109deg,#f6f6f6_0%,#1f1f1f_100%)] font-['Roboto'] text-sm font-bold text-white shadow-[0px_4px_2px_#00000040] hover:brightness-90 disabled:cursor-wait disabled:opacity-70"
+            className="mt-[42px] flex h-[35px] w-full items-center justify-center rounded-[9px] bg-primary font-['Roboto'] text-sm font-bold text-white shadow-[0px_4px_2px_#00000040] hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70"
           >
             {loading ? "Memproses..." : "Buat"}
           </button>
