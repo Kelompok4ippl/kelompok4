@@ -21,7 +21,7 @@ Peta persebaran kos di dashboard memakai **Google Maps** kalau API key diisi, da
 4. Salin `.env.example` menjadi `.env` di folder `frontend`, isi `VITE_GOOGLE_MAPS_API_KEY=...`,
    lalu jalankan ulang `npm run dev`.
 
-Titik kos diambil dari kolom `lat`/`lng` tabel `kos` (sudah terisi di `seed.sql`).
+Titik kos diambil dari kolom `latitude`/`longitude` tabel `kos` (sudah terisi di `seed.sql`), dikirim API sebagai `lat`/`lng`.
 
 ## Route
 | URL | File | Login sebagai | Frame Figma |

@@ -80,4 +80,4 @@ Bisa juga membuat akun baru lewat **Daftar sekarang** di halaman login.
 - **Error `CHECK` / `DEFAULT (CURRENT_DATE)` saat import**: versi MySQL terlalu lama, pakai MySQL 8.0.16 atau lebih baru.
 - **`'npm' is not recognized`**: Node.js belum terpasang, atau CMD perlu dibuka ulang setelah memasang Node.js.
 - **Port 3000 dipakai aplikasi lain**: ubah `PORT=` di `backend\.env`, dan sesuaikan alamat di `frontend\vite.config.js`.
-- **Peta kosong**: peta memakai OpenStreetMap, jadi butuh koneksi internet.
+- **Peta kosong**: peta memakai Google Maps jika `VITE_GOOGLE_MAPS_API_KEY` diisi di `frontend\.env`, dan otomatis kembali ke OpenStreetMap jika key kosong atau ditolak. Keduanya butuh koneksi internet.
