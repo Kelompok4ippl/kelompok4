@@ -192,7 +192,7 @@ export default function DetailKos() {
         <h1 className="font-poppins text-2xl font-bold text-[#080808]">Detail Kos</h1>
       </header>
 
-      <Gallery photos={kos.photos} className="mt-3 rounded-b-none sm:px-[35px] sm:py-[42px]" />
+      <Gallery photos={kos.photos} fit="natural" className="mt-3 rounded-b-none sm:px-[35px] sm:py-[42px]" />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[413px_446px_1fr] lg:gap-[41px]">
         {/* Informasi */}

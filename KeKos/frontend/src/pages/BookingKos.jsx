@@ -76,7 +76,7 @@ export default function BookingKos() {
       {/* Kanan: ringkasan dan tombol booking */}
       <section className="flex-1 px-4 pb-16 pt-6 sm:px-14 lg:max-w-[840px]">
         <h2 className="text-center font-poppins text-2xl font-semibold text-black">Booking Cepat</h2>
-        <Gallery photos={data.photos} max={2} className="mt-5 sm:p-4" />
+        <Gallery photos={data.photos} max={2} fit="natural" className="mt-5 sm:p-4" />
 
         <div className="mt-12 grid gap-10 md:grid-cols-[331px_1fr] md:gap-[53px]">
           <div>

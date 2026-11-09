@@ -93,3 +93,7 @@ INSERT INTO rating (id_kos, id_pencari_kos, nilai_rating, ulasan, tanggal_rating
 CALL sp_buat_booking(4, 8, @b1);
 CALL sp_terima_booking(@b1);
 CALL sp_buat_booking(5, 2, @b2);
+
+-- Kos Campur Ekonomis (dari schema.sql) & Kos Mawar Melati tidak dipakai lagi.
+-- Foto, fasilitas, tipe kamar, dan ratingnya ikut terhapus (ON DELETE CASCADE).
+DELETE FROM kos WHERE id_kos IN (1, 5);

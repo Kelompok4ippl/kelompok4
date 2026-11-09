@@ -43,7 +43,7 @@ export default function Navbar({ notifOpenInitially = false }) {
             onClick={() => setOpen((v) => !v)}
             className={`relative z-[2] rounded-t-[14px] px-3 py-2 sm:-mx-3 ${open ? "bg-white text-black" : ""}`}
           >
-            notifikasi
+            Notifikasi
           </button>
           {open && (
             <div className="absolute left-0 top-[38px] z-[1] w-[min(390px,calc(100vw-32px))] rounded-[14px] rounded-tl-none bg-white text-black shadow-[0_8px_24px_#00000040] sm:-left-3">

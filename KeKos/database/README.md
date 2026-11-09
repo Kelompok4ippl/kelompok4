@@ -7,7 +7,7 @@
   - view: `v_kos_kartu`, `v_sebaran_rating`, `v_ulasan_kos`, `v_kos_tidak_diperbarui`, `v_akun_tidak_login`
   - prosedur & trigger: `sp_catat_login`, `sp_buat_booking`, `sp_terima_booking`, `sp_tolak_booking`,
     `sp_update_rata_rating` (+ trigger rating), `sp_perbarui_terakhir_diperbarui`, `sp_kirim_peringatan`, `sp_hapus_listing`
-- `seed.sql` mengisi data demo Sprint 2: password asli untuk akun contoh, 6 kos terverifikasi
+- `seed.sql` mengisi data demo Sprint 2: password asli untuk akun contoh, 4 kos terverifikasi
   (+1 kos menunggu verifikasi), tipe kamar, foto, fasilitas, ulasan, dan booking yang dibuat lewat `sp_buat_booking`.
 - `arsip/` berisi skema versi class diagram (`kekos_db`, 16 tabel) yang sebelumnya dipakai. Tidak dipakai lagi.
 

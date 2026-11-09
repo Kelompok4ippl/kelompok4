@@ -108,25 +108,31 @@ input:focus-visible {
 .kekos-range {
   -webkit-appearance: none;
   appearance: none;
-  height: 8px;
+  height: 6px;
   border-radius: 999px;
-  background: linear-gradient(to right, #000 var(--fill, 50%), #d9d9d9 var(--fill, 50%));
+  background: linear-gradient(to right, #7d7fff var(--fill, 50%), #e4e4ea var(--fill, 50%));
   cursor: pointer;
 }
 .kekos-range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 27px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 999px;
   background: #fff;
-  border: 2px solid #000;
+  border: 3px solid #7d7fff;
+  box-shadow: 0 2px 6px #0000002e;
+  transition: transform 0.15s ease;
+}
+.kekos-range:active::-webkit-slider-thumb {
+  transform: scale(1.15);
 }
 .kekos-range::-moz-range-thumb {
-  width: 23px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 999px;
   background: #fff;
-  border: 2px solid #000;
+  border: 3px solid #7d7fff;
+  box-shadow: 0 2px 6px #0000002e;
 }
 
 /* Animasi scroll di dashboard (lihat hooks/useScrollEffects.js).

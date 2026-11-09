@@ -60,16 +60,25 @@ export default function Dashboard({ notifOpenInitially = false }) {
   const [facilities, setFacilities] = useState([]);
   const [search, setSearch] = useState("");
   const [mapOpen, setMapOpen] = useState(false);
-  // Filter baru dipakai setelah tombol "Apply Filters" diklik; pencarian langsung (dengan jeda)
-  const [applied, setApplied] = useState({ type: "", maxPrice: MAX_PRICE, facilities: [] });
-  const [q, setQ] = useState("");
+  // Filter langsung berlaku. Tipe & fasilitas seketika; slider budget & pencarian diberi jeda
+  // supaya tidak mengirim permintaan di setiap geseran/ketikan.
+  const [debounced, setDebounced] = useState({ maxPrice: MAX_PRICE, q: "" });
 
   useEffect(() => {
-    const t = setTimeout(() => setQ(search), 400);
+    const t = setTimeout(() => setDebounced({ maxPrice, q: search }), 350);
     return () => clearTimeout(t);
-  }, [search]);
+  }, [maxPrice, search]);
 
-  const listPath = useMemo(() => buildQuery({ ...applied, q }), [applied, q]);
+  const listPath = useMemo(
+    () => buildQuery({ type, facilities, maxPrice: debounced.maxPrice, q: debounced.q }),
+    [type, facilities, debounced]
+  );
+  const isFiltered = type !== "" || maxPrice < MAX_PRICE || facilities.length > 0;
+  const resetFilters = () => {
+    setType("");
+    setMaxPrice(MAX_PRICE);
+    setFacilities([]);
+  };
   const kosList = useApi(listPath);
   const allKos = useApi("/kos");
   const { ref: sliderRef, canPrev, canNext, slide } = useDragScroll();
@@ -207,26 +216,26 @@ export default function Dashboard({ notifOpenInitially = false }) {
           Cari dan bandingkan berbagai pilihan kos berdasarkan harga, tipe kos, fasilitas, dan lokasi sesuai kebutuhanmu.
         </p>
 
-        <div data-reveal="up" style={{ "--reveal-delay": "200ms" }} className="mx-auto mt-11 max-w-[1052px] rounded-xl border-[3px] border-black bg-white p-4 shadow-[0_4px_10px_#00000040] sm:px-[15px] sm:pb-4 sm:pt-[14px]">
+        <div data-reveal="up" style={{ "--reveal-delay": "200ms" }} className="mx-auto mt-11 max-w-[1052px] rounded-2xl border border-[#e4e4ea] bg-white p-5 shadow-[0_10px_30px_#0000000f] sm:p-6">
           <div className="flex flex-col gap-8 md:flex-row md:justify-between">
             <div className="md:w-[491px]">
-              <p className="font-inter text-[11px] font-bold tracking-wide text-[#555]">KOS TYPE</p>
-              <div className="mt-3 inline-flex rounded-md bg-[#f1f1f1] p-[5px]" role="group" aria-label="Tipe kos">
+              <p className="font-inter text-[11px] font-semibold tracking-wider text-[#777]">KOS TYPE</p>
+              <div className="mt-3 inline-flex rounded-full bg-[#f1f1f4] p-1" role="group" aria-label="Tipe kos">
                 {TYPES.map((t) => (
                   <button
                     key={t.value}
                     type="button"
                     aria-pressed={type === t.value}
                     onClick={() => setType(t.value)}
-                    className={`relative h-6 w-[65px] rounded font-inter text-[11px] ${
-                      type === t.value ? "font-semibold text-black" : "text-[#555]"
+                    className={`relative h-8 w-[72px] rounded-full font-inter text-xs transition-colors ${
+                      type === t.value ? "font-semibold text-black" : "text-[#666] hover:text-black"
                     }`}
                   >
                     {/* Satu latar putih yang meluncur ke tombol terpilih (layoutId yang sama) */}
                     {type === t.value && (
                       <motion.span
                         layoutId="tipe-kos-aktif"
-                        className="absolute inset-0 rounded bg-white shadow-[0_1px_2px_#00000040]"
+                        className="absolute inset-0 rounded-full bg-white shadow-[0_1px_4px_#00000026]"
                         transition={{ type: "spring", stiffness: 500, damping: 35 }}
                       />
                     )}
@@ -235,8 +244,8 @@ export default function Dashboard({ notifOpenInitially = false }) {
                 ))}
               </div>
 
-              <div className="mt-2 flex items-center justify-between">
-                <label htmlFor="budget" className="font-inter text-[9px] font-bold tracking-wide text-[#555]">
+              <div className="mt-5 flex items-center justify-between">
+                <label htmlFor="budget" className="font-inter text-[11px] font-semibold tracking-wider text-[#777]">
                   MONTHLY BUDGET
                 </label>
                 <span className="font-inter text-xs font-semibold text-black">
@@ -263,7 +272,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
             </div>
 
             <div className="md:w-[399px]">
-              <p className="font-inter text-[11px] font-bold tracking-wide text-[#555]">FILTER</p>
+              <p className="font-inter text-[11px] font-semibold tracking-wider text-[#777]">FILTER</p>
               <div className="mt-3 flex flex-wrap gap-x-2.5 gap-y-3">
                 {FACILITIES.map((f) => {
                   const on = facilities.includes(f.value);
@@ -274,15 +283,17 @@ export default function Dashboard({ notifOpenInitially = false }) {
                       aria-pressed={on}
                       onClick={() => toggleFacility(f.value)}
                       whileTap={{ scale: 0.9 }}
-                      className={`inline-flex h-[26px] items-center gap-1.5 rounded-full border px-[11px] font-inter text-[11px] ${
-                        on ? "border-[#8f8f8f] bg-[#d9d9d9] text-black" : "border-[#8f8f8f] bg-white text-black"
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 font-inter text-xs transition-colors ${
+                        on
+                          ? "border-[#7d7fff] bg-[#7d7fff1a] font-medium text-[#4b4dd6]"
+                          : "border-[#dcdce2] bg-white text-[#333] hover:border-[#9a9aa5]"
                       }`}
                     >
                       {on && (
                         <motion.img
                           src={checkIcon}
                           alt=""
-                          className="h-[6px] w-2"
+                          className="h-[7px] w-[10px]"
                           initial={{ scale: 0, rotate: -90 }}
                           animate={{ scale: 1, rotate: 0 }}
                           transition={{ type: "spring", stiffness: 500, damping: 20 }}
@@ -293,28 +304,39 @@ export default function Dashboard({ notifOpenInitially = false }) {
                   );
                 })}
               </div>
-              <motion.button
-                type="button"
-                onClick={() => setApplied({ type, maxPrice, facilities })}
-                whileTap={{ scale: 0.97 }}
-                className="mt-4 h-10 w-full max-w-[308px] rounded-md bg-black font-inter text-sm font-medium text-white hover:bg-[#222] md:ml-11"
-              >
-                Apply Filters (
-                {/* Angka baru turun masuk setiap jumlah hasil berubah */}
-                <motion.span
-                  key={kosList.data ? kosList.data.length : 0}
-                  className="inline-block"
-                  initial={{ y: -10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                >
-                  {kosList.data ? kosList.data.length : 0}
-                </motion.span>{" "}
-                Kos)
-              </motion.button>
+              {/* Hasil langsung berubah, jadi cukup tampilkan jumlahnya + tombol reset */}
+              <div className="mt-5 flex items-center justify-between gap-3">
+                <p className="font-inter text-sm text-[#555]" aria-live="polite">
+                  {/* Angka baru turun masuk setiap jumlah hasil berubah */}
+                  <motion.span
+                    key={kosList.data ? kosList.data.length : 0}
+                    className="inline-block font-semibold text-black"
+                    initial={{ y: -10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                  >
+                    {kosList.data ? kosList.data.length : 0}
+                  </motion.span>{" "}
+                  kos ditemukan
+                </p>
+                <AnimatePresence>
+                  {isFiltered && (
+                    <motion.button
+                      type="button"
+                      onClick={resetFilters}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 8 }}
+                      className="rounded-full px-3 py-1 font-inter text-xs font-medium text-[#4b4dd6] hover:bg-[#7d7fff1a]"
+                    >
+                      Reset filter
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
 
-          <label className="mx-auto mt-8 flex h-[50px] max-w-[478px] items-center gap-3 rounded-lg border border-[#9b9b9b] bg-white px-7 sm:h-[59px]">
+          <label className="mx-auto mt-8 flex h-[50px] max-w-[478px] items-center gap-3 rounded-full border border-[#dcdce2] bg-white px-6 transition-colors focus-within:border-[#7d7fff] sm:h-[56px]">
             <img src={searchIcon} alt="" className="h-7 w-7" />
             <span className="sr-only">Cari kos</span>
             <input
