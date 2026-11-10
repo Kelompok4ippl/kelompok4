@@ -25,8 +25,14 @@ export async function api(path, { method = "GET", body } = {}) {
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const error = new Error(data.message || "Terjadi kesalahan");
-    error.code = data.code; // kode khusus dari backend, contoh: "ROLE_MISSING"
+    // FR-16: token kedaluwarsa / tidak valid → hapus sesi lokal dan langsung ke halaman login
+    if (token && res.status === 401 && ["SESI_BERAKHIR", "BELUM_LOGIN"].includes(data.code)) {
+      localStorage.removeItem("kekos_token");
+      localStorage.removeItem("kekos_user");
+      window.location.assign("/");
+    }
+    const error = new Error(data.error?.pesan || data.message || "Terjadi kesalahan");
+    error.code = data.code; // kode khusus dari backend, contoh: "KAMAR_PENUH"
     throw error;
   }
   return data;

@@ -48,7 +48,7 @@ function createGoogleMap(el, maps, { interactive }) {
     streetViewControl: false,
   });
   new maps.Circle({ map, center: CAMPUS, radius: RADIUS_METERS, strokeColor: "#000", strokeWeight: 1.5, fillOpacity: 0.06 });
-  new maps.Marker({ map, position: CAMPUS, title: CAMPUS.name, label: { text: "🎓", fontSize: "14px" } });
+  new maps.Marker({ map, position: CAMPUS, title: CAMPUS.name, label: { text: "K", color: "#fff", fontWeight: "700", fontSize: "13px" } });
   const info = new maps.InfoWindow();
   let markers = [];
   return {

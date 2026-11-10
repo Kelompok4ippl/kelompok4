@@ -11,9 +11,9 @@ export default function RoomCard({ room, selected, onSelect, headerAction, note,
       type={onSelect ? "button" : undefined}
       onClick={onSelect}
       aria-pressed={onSelect ? selected : undefined}
-      className={`relative flex w-full flex-col overflow-hidden rounded-[10px] bg-white text-left text-[#080808] ${
+      className={`relative flex w-full flex-col overflow-hidden rounded-[10px] bg-white text-left text-ink ${
         framed ? "border-[5px] border-black" : ""
-      } ${selected ? "ring-4 ring-[#7d7fff]" : ""}`}
+      } ${selected ? "ring-4 ring-primary" : ""}`}
     >
       <img src={imageUrl(room.image)} alt={room.type} className="aspect-[355/180] w-full object-cover" />
       <div className="px-3.5 pb-4 pt-1.5">
@@ -24,7 +24,7 @@ export default function RoomCard({ room, selected, onSelect, headerAction, note,
           </p>
           {headerAction}
         </div>
-        <p className="mt-0.5 max-w-[210px] font-serif4 text-[11px] leading-[15px] text-[#777]">{room.description}</p>
+        <p className="mt-0.5 max-w-[240px] font-poppins text-xs leading-4 text-muted">{room.description}</p>
         <div className="mt-2.5 flex flex-wrap gap-2">
           {room.facilities.map((f) => (
             <Facility key={f} name={f} boxed />
@@ -37,12 +37,12 @@ export default function RoomCard({ room, selected, onSelect, headerAction, note,
             <span className="font-semibold">{rupiah(room.price)}</span>/bln
           </p>
           {footerAction || (
-            <span className="rounded-full border border-[#555] px-4 py-0.5 font-poppins text-[10px]">
+            <span className="rounded-full border border-muted px-4 py-0.5 font-poppins text-xs">
               {room.available > 0 ? `${room.available} Tersedia` : "Penuh"}
             </span>
           )}
         </div>
-        {note && <p className="mt-2 text-right font-poppins text-[11px] font-semibold text-[#a43016]">{note}</p>}
+        {note && <p className="mt-2 text-right font-poppins text-xs font-semibold text-badge">{note}</p>}
       </div>
     </Wrapper>
   );

@@ -67,13 +67,13 @@ router.get("/:id", async (req, res) => {
   });
 });
 
-// POST /api/kos/:id/ulasan  { rating, isi }
+// POST /api/kos/:id/ulasan  { rating, isi? }  rating wajib, isi ulasan opsional (FR-07)
 // Hanya pencari kos yang booking-nya sudah diterima di kos ini. Rata-rata dihitung trigger.
 router.post("/:id/ulasan", requireAuth, requirePeran("pencariKos"), async (req, res) => {
   const rating = Number(req.body.rating);
   const isi = String(req.body.isi || "").trim();
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5 || !isi) {
-    return sendError(res, 400, "DATA_TIDAK_VALID", "Rating (1-5) dan isi ulasan wajib diisi");
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return sendError(res, 400, "DATA_TIDAK_VALID", "Pilih rating 1 sampai 5");
   }
   const [kos] = await pool.query("SELECT id_kos FROM kos WHERE id_kos = ? AND status_verifikasi = 'terverifikasi'", [req.params.id]);
   if (!kos[0]) return sendError(res, 404, "TIDAK_DITEMUKAN", "Kos tidak ditemukan");
@@ -87,7 +87,7 @@ router.post("/:id/ulasan", requireAuth, requirePeran("pencariKos"), async (req, 
   }
   await pool.query(
     "INSERT INTO rating (id_kos, id_pencari_kos, nilai_rating, ulasan) VALUES (?, ?, ?, ?)",
-    [req.params.id, req.user.id, rating, isi]
+    [req.params.id, req.user.id, rating, isi || null]
   );
   res.status(201).json({ ok: true });
 });

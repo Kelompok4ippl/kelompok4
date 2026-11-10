@@ -5,13 +5,13 @@ import jwt from "jsonwebtoken";
 export function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-  if (!token) return res.status(401).json({ message: "Silakan login dulu" });
+  if (!token) return sendError(res, 401, "BELUM_LOGIN", "Silakan login dulu");
 
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch {
-    res.status(401).json({ message: "Sesi habis, silakan login lagi" });
+    sendError(res, 401, "SESI_BERAKHIR", "Sesi habis, silakan login lagi");
   }
 }
 
@@ -19,7 +19,7 @@ export function requireAuth(req, res, next) {
 export function requirePeran(...peran) {
   return (req, res, next) => {
     if (!peran.includes(req.user.peran)) {
-      return res.status(403).json({ message: "Kamu tidak punya akses ke halaman ini" });
+      return sendError(res, 403, "TIDAK_BERHAK", "Kamu tidak punya akses ke halaman ini");
     }
     next();
   };

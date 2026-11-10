@@ -1,84 +1,94 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { register } from "../api/auth.js";
 import KosHero from "../components/KosHero.jsx";
+import FormField, { PasswordToggle } from "../components/FormField.jsx";
+import Button from "../components/ui/Button.jsx";
 
 import userAddIcon from "../assets/group.svg";
 import emailIcon from "../assets/email.svg";
 import phoneIcon from "../assets/telephone.svg";
 import lockIcon from "../assets/lock.svg";
 import eyeOffIcon from "../assets/eye-off.svg";
+import eyeIcon from "../assets/eye.svg";
 
-// Sprint 2: akun baru selalu terdaftar sebagai pencari kos
-const fieldClass =
-  "flex h-[37px] items-center gap-[18px] rounded-lg border border-[#c9c9cf] px-2.5 focus-within:border-[#4a90e2]";
-const inputClass =
-  "h-full min-w-0 flex-1 bg-transparent font-['Roboto'] text-base text-black outline-none placeholder:text-[#999999]";
+const FIELDS = ["nama", "email", "telepon", "password", "konfirmasi"];
 
-const PasswordToggle = ({ shown, onToggle }) => (
-  <button
-    type="button"
-    aria-label={shown ? "Sembunyikan password" : "Tampilkan password"}
-    onClick={onToggle}
-    className="flex shrink-0"
-  >
-    <img className="h-5 w-5" alt="" src={eyeOffIcon} />
-  </button>
-);
+// Kode error dari backend → kolom yang salah (selain ini, pesan tampil di atas tombol)
+const FIELD_OF_CODE = {
+  EMAIL_TERDAFTAR: "email",
+  EMAIL_TIDAK_VALID: "email",
+  EMAIL_HURUF_BESAR: "email",
+  NO_HP_TIDAK_VALID: "telepon",
+  PASSWORD_PENDEK: "password",
+};
 
+// Cek semua kolom sekaligus (FR-01), hasilnya { namaKolom: pesan }
+function validate(form) {
+  const errors = {};
+  const email = form.email.trim();
+  if (!form.nama.trim()) errors.nama = "Nama lengkap wajib diisi";
+  if (!email) errors.email = "Email wajib diisi";
+  else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = "Format email tidak valid, contoh: nama@gmail.com";
+  else if (email !== email.toLowerCase()) errors.email = "Email harus memakai huruf kecil semua";
+  if (!form.telepon.trim()) errors.telepon = "Nomor telepon wajib diisi";
+  else if (!/^\+?[0-9]{9,15}$/.test(form.telepon.replace(/[\s-]/g, ""))) {
+    errors.telepon = "Nomor telepon tidak valid, isi 9-15 angka";
+  }
+  if (!form.password) errors.password = "Password wajib diisi";
+  else if (form.password.length < 6) errors.password = "Password minimal 6 karakter";
+  if (!form.konfirmasi) errors.konfirmasi = "Ketik ulang password kamu";
+  else if (form.password !== form.konfirmasi) errors.konfirmasi = "Konfirmasi password tidak sama";
+  return errors;
+}
+
+// Sprint 2: akun baru tidak memilih peran (peran dipilih saat login)
 export default function Register() {
   const navigate = useNavigate();
+  const formRef = useRef(null);
 
   const [form, setForm] = useState({ nama: "", email: "", telepon: "", password: "", konfirmasi: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [showKonfirmasi, setShowKonfirmasi] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Pesan error hilang begitu user mulai mengetik lagi
+  // Pesan error kolom hilang begitu kolom itu diketik lagi
   const onType = (event) => {
-    setForm((f) => ({ ...f, [event.target.name]: event.target.value }));
-    setError("");
+    const { name, value } = event.target;
+    setForm((f) => ({ ...f, [name]: value }));
+    setErrors((e) => ({ ...e, [name]: undefined }));
+    setFormError("");
   };
+
+  // Setelah gagal kirim, fokus pindah ke kolom pertama yang salah
+  const focusField = (name) => formRef.current?.querySelector(`[name="${name}"]`)?.focus();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const nama = form.nama.trim();
+    const found = validate(form);
+    setErrors(found);
+    const firstInvalid = FIELDS.find((f) => found[f]);
+    if (firstInvalid) {
+      focusField(firstInvalid);
+      return;
+    }
+
     const email = form.email.trim();
-    const telepon = form.telepon.trim();
-
-    if (!nama || !email || !telepon || !form.password || !form.konfirmasi) {
-      setError("Semua kolom wajib diisi");
-      return;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setError("Format email tidak valid");
-      return;
-    }
-    if (email !== email.toLowerCase()) {
-      setError("Email harus memakai huruf kecil semua");
-      return;
-    }
-    if (!/^\+?[0-9]{9,15}$/.test(telepon.replace(/[\s-]/g, ""))) {
-      setError("Nomor telepon tidak valid");
-      return;
-    }
-    if (form.password.length < 6) {
-      setError("Password minimal 6 karakter");
-      return;
-    }
-    if (form.password !== form.konfirmasi) {
-      setError("Konfirmasi password tidak sama");
-      return;
-    }
-
     setLoading(true);
     try {
-      await register({ nama, email, telepon, password: form.password });
+      await register({ nama: form.nama.trim(), email, telepon: form.telepon.trim(), password: form.password });
       // Ke halaman login dengan notif "Akun Berhasil Dibuat"
       navigate("/", { state: { registered: true, email } });
     } catch (err) {
-      setError(err.message);
+      const field = FIELD_OF_CODE[err.code];
+      if (field) {
+        setErrors({ [field]: err.message });
+        focusField(field);
+      } else {
+        setFormError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -92,111 +102,109 @@ export default function Register() {
       {/* Kanan: form buat akun */}
       <section
         aria-labelledby="register-title"
-        className="border-[#919191] bg-white px-4 pb-10 pt-8 sm:px-[33px] sm:pt-[62px] min-[1100px]:w-[497px] min-[1100px]:shrink-0 min-[1100px]:border"
+        className="border-line-strong bg-white px-4 pb-10 pt-8 sm:px-[33px] sm:pt-[62px] min-[1100px]:w-[497px] min-[1100px]:shrink-0 min-[1100px]:border"
       >
-        <h1 id="register-title" className="font-['Ruwudu'] text-[26px] text-black sm:text-[32px]">
+        <h1 id="register-title" className="font-poppins text-[26px] font-semibold text-ink sm:text-[32px]">
           Buat Akun Baru
         </h1>
-        <p className="mt-4 max-w-[437px] font-['Ruwudu'] text-[17px] text-[#555454] sm:text-xl">
+        <p className="mt-3 max-w-[437px] font-inter text-base text-muted sm:text-lg">
           Buat akun kamu untuk bisa mencari dan membooking kos yang kamu inginkan
         </p>
 
-        <form onSubmit={handleSubmit} noValidate className="mx-auto mt-10 w-full max-w-[303px] min-[1100px]:mt-[114px]">
-          <div className="mx-auto flex w-full max-w-[261px] flex-col gap-[23px]">
-            <label className={fieldClass}>
-              <img className="h-[19px] w-[18.5px] shrink-0" alt="" src={userAddIcon} />
-              <span className="sr-only">Nama Lengkap</span>
-              <input
-                type="text"
-                name="nama"
-                placeholder="Nama Lengkap"
-                autoComplete="name"
-                value={form.nama}
-                onChange={onType}
-                className={inputClass}
+        <form ref={formRef} onSubmit={handleSubmit} noValidate className="mx-auto mt-10 flex w-full max-w-[340px] flex-col gap-4">
+          <p className="font-inter text-xs text-muted">Semua kolom wajib diisi.</p>
+          <FormField
+            id="daftar-nama"
+            name="nama"
+            label="Nama Lengkap"
+            icon={userAddIcon}
+            autoComplete="name"
+            value={form.nama}
+            onChange={onType}
+            error={errors.nama}
+          />
+          <FormField
+            id="daftar-email"
+            name="email"
+            type="email"
+            label="Email"
+            icon={emailIcon}
+            placeholder="nama@gmail.com"
+            autoComplete="email"
+            value={form.email}
+            onChange={onType}
+            helper="Gunakan huruf kecil semua."
+            error={errors.email}
+          />
+          <FormField
+            id="daftar-telepon"
+            name="telepon"
+            type="tel"
+            inputMode="tel"
+            label="Nomor Telepon"
+            icon={phoneIcon}
+            placeholder="081234567890"
+            autoComplete="tel"
+            value={form.telepon}
+            onChange={onType}
+            error={errors.telepon}
+          />
+          <FormField
+            id="daftar-password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            label="Password"
+            icon={lockIcon}
+            autoComplete="new-password"
+            value={form.password}
+            onChange={onType}
+            helper="Minimal 6 karakter."
+            error={errors.password}
+            trailing={
+              <PasswordToggle
+                shown={showPassword}
+                onToggle={() => setShowPassword((v) => !v)}
+                eyeIcon={eyeIcon}
+                eyeOffIcon={eyeOffIcon}
               />
-            </label>
-
-            <label className={fieldClass}>
-              <img className="h-5 w-5 shrink-0" alt="" src={emailIcon} />
-              <span className="sr-only">Email</span>
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                autoComplete="email"
-                value={form.email}
-                onChange={onType}
-                className={inputClass}
+            }
+          />
+          <FormField
+            id="daftar-konfirmasi"
+            name="konfirmasi"
+            type={showKonfirmasi ? "text" : "password"}
+            label="Konfirmasi Password"
+            icon={lockIcon}
+            autoComplete="new-password"
+            value={form.konfirmasi}
+            onChange={onType}
+            error={errors.konfirmasi}
+            trailing={
+              <PasswordToggle
+                shown={showKonfirmasi}
+                onToggle={() => setShowKonfirmasi((v) => !v)}
+                eyeIcon={eyeIcon}
+                eyeOffIcon={eyeOffIcon}
               />
-            </label>
+            }
+          />
 
-            <label className={fieldClass}>
-              <img className="h-4 w-4 shrink-0" alt="" src={phoneIcon} />
-              <span className="sr-only">Nomor Telepon</span>
-              <input
-                type="tel"
-                name="telepon"
-                placeholder="Nomor Telepon"
-                autoComplete="tel"
-                inputMode="tel"
-                value={form.telepon}
-                onChange={onType}
-                className={inputClass}
-              />
-            </label>
-
-            <label className={fieldClass}>
-              <img className="h-5 w-5 shrink-0" alt="" src={lockIcon} />
-              <span className="sr-only">Password</span>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                autoComplete="new-password"
-                value={form.password}
-                onChange={onType}
-                className={inputClass}
-              />
-              <PasswordToggle shown={showPassword} onToggle={() => setShowPassword((v) => !v)} />
-            </label>
-
-            <label className={fieldClass}>
-              <img className="h-5 w-5 shrink-0" alt="" src={lockIcon} />
-              <span className="sr-only">Konfirmasi Password</span>
-              <input
-                type={showKonfirmasi ? "text" : "password"}
-                name="konfirmasi"
-                placeholder="Konfirmasi Password"
-                autoComplete="new-password"
-                value={form.konfirmasi}
-                onChange={onType}
-                className={inputClass}
-              />
-              <PasswordToggle shown={showKonfirmasi} onToggle={() => setShowKonfirmasi((v) => !v)} />
-            </label>
-          </div>
-
-          {error && (
-            <p role="alert" className="mx-auto mt-[3px] max-w-[261px] font-['Rokkitt'] text-xs text-[#ff0000]">
-              {error}*
+          {formError && (
+            <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 font-inter text-sm text-danger">
+              {formError}
             </p>
           )}
 
-          <p className={`text-center font-['Rokkitt'] text-lg text-black sm:whitespace-nowrap sm:text-xl ${error ? "mt-1.5" : "mt-[19px]"}`}>
+          <Button type="submit" size="lg" disabled={loading} className="mt-2 w-full">
+            {loading ? "Memproses..." : "Buat Akun"}
+          </Button>
+
+          <p className="text-center font-inter text-base text-ink">
             Sudah punya akun?{" "}
-            <Link to="/" className="text-[#7d7fff] hover:underline">
+            <Link to="/" className="font-medium text-primary-strong underline-offset-2 hover:underline">
               Login sekarang
             </Link>
           </p>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-[42px] flex h-[35px] w-full items-center justify-center rounded-[9px] bg-[linear-gradient(109deg,#f6f6f6_0%,#1f1f1f_100%)] font-['Roboto'] text-sm font-bold text-white shadow-[0px_4px_2px_#00000040] hover:brightness-90 disabled:cursor-wait disabled:opacity-70"
-          >
-            {loading ? "Memproses..." : "Buat"}
-          </button>
         </form>
       </section>
     </main>

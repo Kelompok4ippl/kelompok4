@@ -2,36 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Warna & font dari Figma. Font dimuat lewat Google Fonts di <head> tiap halaman. */
+/* Token warna & font KeKos (dipakai lewat tailwind.config.js). Kontras teks di atas putih:
+   ink/body/muted ≥ 7:1, danger 6,5:1, primary-strong 6:1. */
 :root {
   --black: rgba(0, 0, 0, 1);
-  --boulder: rgba(117, 117, 117, 1);
-  --gallery: rgba(239, 239, 239, 1);
   --white: rgba(255, 255, 255, 1);
 
   --page-bg: #f8f9ff;
-  --text-muted: #545454;
-  --text-dark: #080808;
-  --border-soft: #c9c9cf;
-  --border-panel: #919191;
-  --link: #7d7fff;
-  --error: #ff0000;
-  --star: #ffb918;
-  --badge-bg: #ffebe3;
-  --badge-text: #a43016;
+  --color-ink: #080808;
+  --color-body: #333333;
+  --color-muted: #555555;
+  --color-subtle: #6b6b6b;
+  --color-line: #dcdce2;
+  --color-line-strong: #8f8f99;
+  --color-focus: #4a90e2;
+  --color-surface: #f1f1f4;
+  --color-surface-strong: #e5e5e5;
+  --color-primary: #7d7fff;
+  --color-primary-strong: #4b4dd6;
+  --color-primary-soft: #7d7fff1a;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fdecec;
+  --color-success: #11683f;
+  --color-success-soft: #eaf7f0;
+  --color-badge: #a43016;
+  --color-badge-soft: #ffebe3;
+  --color-star: #ffb918;
 
-  --font-heading: "Ruwudu", Helvetica, serif;
-  --font-stencil: "Saira Stencil One", Helvetica, sans-serif;
-  --font-body: "Roboto", Helvetica, Arial, sans-serif;
-  --font-display: "Inter", Helvetica, Arial, sans-serif;
-  --font-accent: "Rokkitt", Helvetica, serif;
-
-  --roboto-bold-font-family: "Roboto", Helvetica;
-  --roboto-bold-font-weight: 700;
-  --roboto-bold-font-size: 32px;
-  --roboto-regular-font-family: "Roboto", Helvetica;
-  --roboto-regular-font-weight: 400;
-  --roboto-regular-font-size: 16px;
+  --font-heading: "Poppins", Helvetica, Arial, sans-serif;
+  --font-body: "Inter", Helvetica, Arial, sans-serif;
 }
 
 /* Reset & dasar global untuk semua halaman KeKos */
@@ -87,7 +86,9 @@ button {
 
 button:focus-visible,
 a:focus-visible,
-input:focus-visible {
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid #4a90e2;
   outline-offset: 2px;
 }
@@ -197,18 +198,4 @@ input:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .kekos-rotate [aria-hidden] > span { animation: none; }
-}
-
-/* Login pemilik kos (belum tersedia) terpental kembali ke form login */
-@keyframes kekos-bounce-back {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(40px); }
-  40% { transform: translateX(-24px); }
-  60% { transform: translateX(14px); }
-  80% { transform: translateX(-6px); }
-  100% { transform: translateX(0); }
-}
-.kekos-bounce-back { animation: kekos-bounce-back 0.6s cubic-bezier(0.3, 0.7, 0.4, 1); }
-@media (prefers-reduced-motion: reduce) {
-  .kekos-bounce-back { animation: none; }
 }

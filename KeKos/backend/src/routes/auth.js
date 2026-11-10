@@ -24,21 +24,22 @@ function publicUser(user, peran) {
   };
 }
 
-// POST /api/auth/register  { nama, email, telepon?, password }
+// POST /api/auth/register  { nama, email, telepon, password }  (semua wajib, FR-01)
 // Registrasi tanpa peran; peran dipilih saat login.
 router.post("/register", async (req, res) => {
   const nama = String(req.body.nama || "").trim();
   const email = String(req.body.email || "").trim();
   const password = String(req.body.password || "");
   const noHp = req.body.telepon ? String(req.body.telepon).replace(/[\s-]/g, "") : null;
-  if (!nama || !email || !password) {
-    return sendError(res, 400, "DATA_TIDAK_LENGKAP", "Nama, email, dan password wajib diisi");
+  if (!nama || !email || !password || !noHp) {
+    return sendError(res, 400, "DATA_TIDAK_LENGKAP", "Semua kolom wajib diisi");
   }
+  if (!/^\S+@\S+\.\S+$/.test(email)) return sendError(res, 400, "EMAIL_TIDAK_VALID", "Format email tidak valid");
   if (email !== email.toLowerCase()) {
     return sendError(res, 400, "EMAIL_HURUF_BESAR", "Email harus memakai huruf kecil semua");
   }
   if (password.length < 6) return sendError(res, 400, "PASSWORD_PENDEK", "Password minimal 6 karakter");
-  if (noHp && !/^\+?[0-9]{9,15}$/.test(noHp)) return sendError(res, 400, "NO_HP_TIDAK_VALID", "Nomor telepon tidak valid");
+  if (!/^\+?[0-9]{9,15}$/.test(noHp)) return sendError(res, 400, "NO_HP_TIDAK_VALID", "Nomor telepon tidak valid");
 
   const [existing] = await pool.query("SELECT id_pengguna FROM pengguna WHERE email = ?", [email]);
   if (existing.length) return sendError(res, 409, "EMAIL_TERDAFTAR", "Email sudah terdaftar. Silakan login.");
@@ -64,7 +65,7 @@ router.post("/login", async (req, res) => {
   if (!user || !(await bcrypt.compare(password, user.password))) {
     return sendError(res, 401, "LOGIN_GAGAL", "Email atau password salah");
   }
-  if (user.status_akun === "nonaktif") return sendError(res, 403, "AKUN_NONAKTIF", "Akun ini sudah dinonaktifkan");
+  if (user.status_akun === "nonaktif") return sendError(res, 403, "AKUN_NONAKTIF", "Akun Anda dinonaktifkan");
   // Sprint 2 baru berisi fitur pencari kos; halaman admin dan pemilik kos menyusul di Sprint 3
   if (user.role === "admin") return sendError(res, 403, "BELUM_TERSEDIA", "Halaman admin menyusul di Sprint 3");
   if (peran === "pemilikKos") return sendError(res, 403, "BELUM_TERSEDIA", "Login pemilik kos menyusul di Sprint 3");
