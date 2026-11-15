@@ -86,8 +86,9 @@ button {
 
 button:focus-visible,
 a:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
+/* Input ber-class outline-none sudah punya tanda fokus di bingkai pembungkusnya */
+input:not(.outline-none):focus-visible,
+textarea:not(.outline-none):focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid #4a90e2;
   outline-offset: 2px;

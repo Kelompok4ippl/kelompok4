@@ -105,7 +105,7 @@ export default function Login() {
           Selamat Datang Kembali
         </h1>
         <p className="mt-3 font-inter text-base text-muted sm:text-lg">
-          Masukkan akun kamu untuk mengakses dashboard.
+          Masukkan akun Anda untuk mengakses dashboard.
         </p>
 
         <form onSubmit={handleSubmit} noValidate className="mx-auto mt-8 w-full max-w-[340px]">
@@ -151,7 +151,7 @@ export default function Login() {
               type="email"
               label="Email"
               icon={emailIcon}
-              placeholder="nama@gmail.com"
+              placeholder="Masukkan email Anda"
               autoComplete="email"
               value={email}
               onChange={onType(setEmail)}
@@ -165,6 +165,7 @@ export default function Login() {
               type={showPassword ? "text" : "password"}
               label="Password"
               icon={lockIcon}
+              placeholder="Masukkan password"
               autoComplete="current-password"
               value={password}
               onChange={onType(setPassword)}

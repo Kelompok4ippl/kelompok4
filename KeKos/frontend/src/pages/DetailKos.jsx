@@ -351,7 +351,7 @@ export default function DetailKos() {
           </div>
           {isPencari && !canReview && !myBookings.loading && (
             <p id="info-ulasan" className="mt-2 text-center font-inter text-xs text-muted">
-              Hanya penyewa yang dapat memberi rating. Ulasan bisa ditulis setelah booking kamu diterima pemilik.
+              Hanya penyewa yang dapat memberi rating. Ulasan bisa ditulis setelah booking Anda diterima pemilik.
             </p>
           )}
 

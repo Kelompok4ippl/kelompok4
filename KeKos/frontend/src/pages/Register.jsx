@@ -37,7 +37,7 @@ function validate(form) {
   }
   if (!form.password) errors.password = "Password wajib diisi";
   else if (form.password.length < 6) errors.password = "Password minimal 6 karakter";
-  if (!form.konfirmasi) errors.konfirmasi = "Ketik ulang password kamu";
+  if (!form.konfirmasi) errors.konfirmasi = "Ketik ulang password Anda";
   else if (form.password !== form.konfirmasi) errors.konfirmasi = "Konfirmasi password tidak sama";
   return errors;
 }
@@ -108,7 +108,7 @@ export default function Register() {
           Buat Akun Baru
         </h1>
         <p className="mt-3 max-w-[437px] font-inter text-base text-muted sm:text-lg">
-          Buat akun kamu untuk bisa mencari dan membooking kos yang kamu inginkan
+          Buat akun Anda untuk bisa mencari dan membooking kos yang Anda inginkan
         </p>
 
         <form ref={formRef} onSubmit={handleSubmit} noValidate className="mx-auto mt-10 flex w-full max-w-[340px] flex-col gap-4">
@@ -118,6 +118,7 @@ export default function Register() {
             name="nama"
             label="Nama Lengkap"
             icon={userAddIcon}
+            placeholder="Nama lengkap Anda"
             autoComplete="name"
             value={form.nama}
             onChange={onType}
@@ -129,7 +130,7 @@ export default function Register() {
             type="email"
             label="Email"
             icon={emailIcon}
-            placeholder="nama@gmail.com"
+            placeholder="Masukkan email Anda"
             autoComplete="email"
             value={form.email}
             onChange={onType}
@@ -143,7 +144,7 @@ export default function Register() {
             inputMode="tel"
             label="Nomor Telepon"
             icon={phoneIcon}
-            placeholder="081234567890"
+            placeholder="Masukkan nomor telepon Anda"
             autoComplete="tel"
             value={form.telepon}
             onChange={onType}
@@ -155,6 +156,7 @@ export default function Register() {
             type={showPassword ? "text" : "password"}
             label="Password"
             icon={lockIcon}
+            placeholder="Minimal 6 karakter"
             autoComplete="new-password"
             value={form.password}
             onChange={onType}
@@ -175,6 +177,7 @@ export default function Register() {
             type={showKonfirmasi ? "text" : "password"}
             label="Konfirmasi Password"
             icon={lockIcon}
+            placeholder="Ketik ulang password"
             autoComplete="new-password"
             value={form.konfirmasi}
             onChange={onType}

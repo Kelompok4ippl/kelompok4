@@ -106,11 +106,11 @@ export default function BookingKos() {
             </p>
             <p className="mt-1 font-inter text-base font-semibold leading-[23px] text-muted">
               {status === "menunggu"
-                ? "Booking kamu sedang menunggu konfirmasi pemilik"
+                ? "Booking Anda sedang menunggu konfirmasi pemilik"
                 : status === "diterima"
-                  ? "Booking kamu sudah diterima pemilik"
+                  ? "Booking Anda sudah diterima pemilik"
                   : selected?.available > 0
-                    ? "Kamar masih tersedia untuk kamu booking"
+                    ? "Kamar masih tersedia untuk Anda booking"
                     : "Tipe kamar ini sedang penuh"}
             </p>
             <Button onClick={book} disabled={cannotBook} size="lg" className="mt-10 w-full">
@@ -128,14 +128,14 @@ export default function BookingKos() {
             )}
             {bookings.error && (
               <p role="alert" className="mt-3 font-inter text-sm text-danger">
-                Status booking kamu gagal dimuat ({bookings.error}).{" "}
+                Status booking Anda gagal dimuat ({bookings.error}).{" "}
                 <button type="button" onClick={bookings.reload} className="font-semibold underline">
                   Coba lagi
                 </button>
               </p>
             )}
             {error && <p role="alert" className="mt-3 font-inter text-sm text-danger">{error}</p>}
-            {rejected && <p className="mt-3 font-inter text-sm text-badge">Booking sebelumnya ditolak pemilik. Kamu bisa memilih kamar lain.</p>}
+            {rejected && <p className="mt-3 font-inter text-sm text-badge">Booking sebelumnya ditolak pemilik. Anda bisa memilih kamar lain.</p>}
             {status === "diterima" && (
               <div className="mx-auto mt-10 w-full max-w-[300px] rounded-lg bg-black px-4 py-4 text-center text-white shadow-[0_0_12px_#00000080]">
                 <p className="font-inter text-sm leading-5">

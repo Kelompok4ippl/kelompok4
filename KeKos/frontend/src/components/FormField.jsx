@@ -19,7 +19,7 @@ export default function FormField({ id, label, icon, error, helper, invalid = fa
           id={id}
           aria-invalid={hasError || undefined}
           aria-describedby={ids || undefined}
-          className="h-full min-w-0 flex-1 bg-transparent font-inter text-base text-ink outline-none placeholder:text-subtle"
+          className="h-full min-w-0 flex-1 bg-transparent font-inter text-base text-ink outline-none placeholder:text-subtle focus:placeholder:text-transparent"
           {...inputProps}
         />
         {trailing}
