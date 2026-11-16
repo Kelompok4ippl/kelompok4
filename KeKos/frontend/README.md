@@ -33,8 +33,11 @@ Titik kos diambil dari kolom `latitude`/`longitude` tabel `kos` (sudah terisi di
 | `/notifikasi` | `pages/Dashboard.jsx` (dropdown notifikasi terbuka) | pencari | notifikasi untuk pencari kos |
 | `/kos/:id` | `pages/DetailKos.jsx` | siapa saja | Detail |
 | `/kos/:id/booking` | `pages/BookingKos.jsx` | pencari | KeKos - verifikasi booking (3 kondisi) |
+| `/pemilik/kos` | `pages/PemilikKos.jsx` | pemilik | KeKos - Daftar Kos |
+| `/pemilik/kamar` | `pages/PemilikKamar.jsx` | pemilik | KeKos - Daftar Kamar (421:387) |
+| `/pemilik/notifikasi` | `pages/PemilikNotifikasi.jsx` | pemilik | KeKos - Daftar Kamar (468:286, notifikasi) |
 
-Setelah login, pencari kos diarahkan ke `/dashboard`. Halaman pemilik kos dan admin menyusul di Sprint 3.
+Setelah login, pencari kos diarahkan ke `/dashboard`, pemilik kos ke `/pemilik/kos`. Halaman admin belum ada.
 Setelah daftar akun, user kembali ke halaman login dengan notif "Akun Berhasil Dibuat".
 
 ## Struktur `src/`

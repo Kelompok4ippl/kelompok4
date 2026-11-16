@@ -12,7 +12,7 @@ function makeToken(user, peran) {
   return jwt.sign({ id: user.id_pengguna, email: user.email, peran }, process.env.JWT_SECRET, { expiresIn: "7d" });
 }
 
-// role "pencari" dipakai frontend untuk penjaga halaman (RequireRole)
+// role "pencari" / "pemilik" dipakai frontend untuk penjaga halaman (RequireRole)
 function publicUser(user, peran) {
   return {
     id: user.id_pengguna,
@@ -20,7 +20,7 @@ function publicUser(user, peran) {
     email: user.email,
     telepon: user.no_hp ?? null,
     peran,
-    role: peran === "pencariKos" ? "pencari" : peran,
+    role: peran === "pencariKos" ? "pencari" : "pemilik",
   };
 }
 
@@ -66,9 +66,8 @@ router.post("/login", async (req, res) => {
     return sendError(res, 401, "LOGIN_GAGAL", "Email atau password salah");
   }
   if (user.status_akun === "nonaktif") return sendError(res, 403, "AKUN_NONAKTIF", "Akun Anda dinonaktifkan");
-  // Sprint 2 baru berisi fitur pencari kos; halaman admin dan pemilik kos menyusul di Sprint 3
-  if (user.role === "admin") return sendError(res, 403, "BELUM_TERSEDIA", "Halaman admin menyusul di Sprint 3");
-  if (peran === "pemilikKos") return sendError(res, 403, "BELUM_TERSEDIA", "Login pemilik kos menyusul di Sprint 3");
+  // Halaman admin belum ada; pencari dan pemilik kos sudah bisa login
+  if (user.role === "admin") return sendError(res, 403, "BELUM_TERSEDIA", "Halaman admin belum tersedia");
 
   await pool.query("CALL sp_catat_login(?)", [user.id_pengguna]);
   res.json({ token: makeToken(user, peran), user: publicUser(user, peran) });
