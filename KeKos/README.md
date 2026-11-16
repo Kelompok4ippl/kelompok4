@@ -1,14 +1,18 @@
-# KeKos — Sprint 2: Fitur Pencari Kos
+# KeKos — Fitur Pencari Kos & Pemilik Kos
 
-Versi ini hanya berisi fitur yang masuk **Sprint 2**:
-
+**Pencari kos**
 - **Login & daftar akun** (akun baru otomatis menjadi pencari kos)
 - **Dashboard pencari kos**: pencarian & filter (tipe, harga, fasilitas), peta persebaran kos, kartu kos yang bisa digeser
 - **Detail kos**: foto, informasi, tipe kamar, ulasan & rating (bisa tulis/hapus ulasan sendiri)
-- **Booking kos** oleh pencari (status "menunggu" sampai diproses pemilik)
+- **Booking kos** (status "menunggu" sampai diproses pemilik)
 - **Notifikasi** pencari kos
 
-Fitur pemilik kos dan admin tidak ada di versi ini (menyusul Sprint 3).
+**Pemilik kos** (pilih tab **Pemilik kos** di halaman login)
+- **Kelola kos**: tambah/ubah kos, fasilitas, upload foto (JPG/PNG/WebP maks 5 MB, maks 10 foto per kos). Kos baru berstatus *menunggu* sampai diverifikasi admin
+- **Kelola tipe kamar**: tambah/ubah tipe kamar, harga, jumlah kamar, tandai tersedia/penuh
+- **Booking masuk**: terima atau tolak booking dari pencari kos, plus riwayat dan notifikasi
+
+Halaman admin belum ada (akun admin ditolak saat login).
 
 ```
 KeKos/
@@ -61,7 +65,7 @@ Password semua akun: `password123`
 | `pencari@kekos.test` | Booking di *Kos Putra* sudah diterima (bisa menulis ulasan, nomor WA pemilik terbuka) |
 | `siti@contoh.local` | Pencari kos |
 | `dyandra@gmail.com` | Booking di *Cozy kos* masih menunggu |
-| `budi@contoh.local` | Pemilik beberapa kos contoh (login pemilik menyusul di Sprint 3) |
+| `budi@contoh.local` | Pemilik beberapa kos contoh — login lewat tab **Pemilik kos** |
 
 Bisa juga membuat akun baru lewat **Daftar sekarang** di halaman login.
 
@@ -71,7 +75,10 @@ Bisa juga membuat akun baru lewat **Daftar sekarang** di halaman login.
 3. Klik **Cari Kos!**, coba filter tipe/harga/fasilitas, lihat titik kos di peta.
 4. Buka *Kos Putra* → lihat detail & ulasan, tulis ulasan (hanya penyewa yang booking-nya diterima yang bisa memberi ulasan).
 5. Lanjut ke booking → pilih tipe kamar → **Booking Sekarang** → status berubah menjadi menunggu.
-6. Logout (ikon panah kanan atas), lalu coba daftar akun baru.
+6. Logout (ikon panah kanan atas), lalu login lagi lewat tab **Pemilik kos** pakai `budi@contoh.local`.
+7. Buka notifikasi pemilik → **terima** booking tadi. Login lagi sebagai pencari untuk melihat statusnya berubah.
+8. Sebagai pemilik, coba tambah kos/tipe kamar dan upload foto.
+9. Coba daftar akun baru lewat **Daftar sekarang**.
 
 ## Kalau ada masalah
 - **`Terjadi kesalahan di server` / `Access denied for user 'root'`**: password di `backend\.env` belum sama dengan password MySQL.
@@ -81,3 +88,7 @@ Bisa juga membuat akun baru lewat **Daftar sekarang** di halaman login.
 - **`'npm' is not recognized`**: Node.js belum terpasang, atau CMD perlu dibuka ulang setelah memasang Node.js.
 - **Port 3000 dipakai aplikasi lain**: ubah `PORT=` di `backend\.env`, dan sesuaikan alamat di `frontend\vite.config.js`.
 - **Peta kosong**: peta memakai Google Maps jika `VITE_GOOGLE_MAPS_API_KEY` diisi di `frontend\.env`, dan otomatis kembali ke OpenStreetMap jika key kosong atau ditolak. Keduanya butuh koneksi internet.
+- **Upload foto gagal / foto tidak muncul**: foto disimpan di `backend\uploads\` (dibuat otomatis, tidak ikut git). Pastikan file JPG/PNG/WebP dan maksimal 5 MB.
+- **Kos baru tidak muncul di dashboard pencari**: wajar, kos baru menunggu verifikasi admin. Untuk demo, ubah `status_verifikasi` kos itu menjadi `terverifikasi` di Workbench.
+
+Daftar endpoint API ada di `backend\README.md`.
