@@ -6,7 +6,7 @@ import { getToken } from "../api/client.js";
 export default function RequireRole({ role, children }) {
   const location = useLocation();
   const user = getCurrentUser();
-  // from: halaman tujuan, dipakai Login untuk kembali ke sini setelah berhasil masuk
+  // Simpan halaman tujuan supaya setelah login pengguna kembali ke sana (FR-05)
   if (!user || !getToken()) return <Navigate to="/" replace state={{ from: location.pathname + location.search }} />;
   if (user.role !== role) return <Navigate to={homeFor(user.role)} replace />;
   return children;

@@ -13,8 +13,8 @@ export default function Facility({ name, boxed = false }) {
   const icon = ICONS[key];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap font-roboto text-sm text-[#080808] ${
-        boxed ? "rounded-lg border border-[#9b9b9b] px-2.5 py-1" : ""
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap font-roboto text-sm text-ink ${
+        boxed ? "rounded-lg border border-line-strong px-2.5 py-1" : ""
       }`}
     >
       {icon && <img src={icon} alt="" className={key === "wifi" ? "h-5 w-5" : "h-4 w-4"} />}

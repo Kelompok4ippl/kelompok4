@@ -1,8 +1,6 @@
 // Semua request ke backend lewat "/api/...". Saat development, Vite meneruskannya
 // ke http://localhost:3000 (lihat vite.config.js).
 
-import { logout } from "./auth.js";
-
 export function getToken() {
   return localStorage.getItem("kekos_token");
 }
@@ -26,15 +24,15 @@ export async function api(path, { method = "GET", body } = {}) {
     throw new Error("Tidak bisa terhubung ke server");
   }
   const data = await res.json().catch(() => ({}));
-  // Token kedaluwarsa/tidak valid: hapus sesi lalu kembali ke login. /auth/* dikecualikan
-  // karena 401 di sana berarti email/password salah, bukan sesi habis.
-  if (res.status === 401 && token && !path.startsWith("/auth/")) {
-    logout();
-    window.location.assign("/");
-  }
   if (!res.ok) {
-    const error = new Error(data.message || "Terjadi kesalahan");
-    error.code = data.code; // kode khusus dari backend, contoh: "ROLE_MISSING"
+    // FR-16: token kedaluwarsa / tidak valid → hapus sesi lokal dan langsung ke halaman login
+    if (token && res.status === 401 && ["SESI_BERAKHIR", "BELUM_LOGIN"].includes(data.code)) {
+      localStorage.removeItem("kekos_token");
+      localStorage.removeItem("kekos_user");
+      window.location.assign("/");
+    }
+    const error = new Error(data.error?.pesan || data.message || "Terjadi kesalahan");
+    error.code = data.code; // kode khusus dari backend, contoh: "KAMAR_PENUH"
     throw error;
   }
   return data;
