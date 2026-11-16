@@ -105,6 +105,7 @@ export function toNotifikasi(row) {
   const jenis = JENIS_NOTIFIKASI[row.jenis_notifikasi] || { type: "info", title: "Notifikasi" };
   return {
     id: row.id_notifikasi,
+    kind: row.jenis_notifikasi,
     type: jenis.type,
     title: jenis.title,
     message: row.pesan,

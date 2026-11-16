@@ -5,8 +5,9 @@ function saveSession({ token, user }) {
   localStorage.setItem("kekos_user", JSON.stringify(user));
 }
 
-export async function login({ email, password }) {
-  const data = await api("/auth/login", { method: "POST", body: { email, password } });
+// peran: "pencariKos" (default) / "pemilikKos"
+export async function login({ email, password, peran }) {
+  const data = await api("/auth/login", { method: "POST", body: { email, password, peran } });
   saveSession(data);
   return data.user;
 }
@@ -30,7 +31,7 @@ export function getCurrentUser() {
   }
 }
 
-// Halaman awal setelah login (Sprint 2: hanya pencari kos)
-export function homeFor() {
-  return "/dashboard";
+// Halaman awal setelah login sesuai peran
+export function homeFor(role) {
+  return role === "pemilik" ? "/pemilik/kos" : "/dashboard";
 }

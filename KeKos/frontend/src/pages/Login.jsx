@@ -63,9 +63,10 @@ export default function Login() {
 
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
-      // Kembali ke halaman yang tadi diminta (misalnya Booking Cepat), kalau ada
-      navigate(location.state?.from || homeFor(), { replace: true });
+      const user = await login({ email: email.trim(), password, peran: role === "pemilik" ? "pemilikKos" : "pencariKos" });
+      // Kembali ke halaman yang tadi diminta (misalnya Booking Cepat), kalau ada.
+      // Kalau halaman itu milik peran lain, RequireRole mengarahkan ke beranda peran ini.
+      navigate(location.state?.from || homeFor(user.role), { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

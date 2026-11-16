@@ -9,9 +9,10 @@ export async function api(path, { method = "GET", body } = {}) {
   const headers = {};
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
-  // FormData (upload foto) dikirim apa adanya, selain itu sebagai JSON
-  const isForm = body instanceof FormData;
-  if (body && !isForm) headers["Content-Type"] = "application/json";
+  // FormData dan File/Blob (upload foto) dikirim apa adanya, selain itu sebagai JSON
+  const isForm = body instanceof FormData || body instanceof Blob;
+  if (body instanceof Blob) headers["Content-Type"] = body.type;
+  else if (body && !isForm) headers["Content-Type"] = "application/json";
 
   let res;
   try {

@@ -7,7 +7,7 @@ export default function RequireRole({ role, children }) {
   const location = useLocation();
   const user = getCurrentUser();
   // Simpan halaman tujuan supaya setelah login pengguna kembali ke sana (FR-05)
-  if (!user || !getToken()) return <Navigate to="/" replace state={{ from: location.pathname }} />;
+  if (!user || !getToken()) return <Navigate to="/" replace state={{ from: location.pathname + location.search }} />;
   if (user.role !== role) return <Navigate to={homeFor(user.role)} replace />;
   return children;
 }

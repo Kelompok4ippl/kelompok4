@@ -4,6 +4,7 @@ import authRoutes from "./routes/auth.js";
 import kosRoutes from "./routes/kos.js";
 import bookingRoutes from "./routes/booking.js";
 import notifikasiRoutes from "./routes/notifikasi.js";
+import pemilikRoutes, { UPLOAD_DIR } from "./routes/pemilik.js";
 import { sendError } from "./middleware/auth.js";
 import { pool } from "./db.js";
 import { KOS_SELECT, toKos } from "./format.js";
@@ -29,9 +30,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/kos", kosRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
+app.use("/api/pemilik", pemilikRoutes);
+// Foto kos yang diupload pemilik (nama file acak, hanya gambar yang lolos cek isi file)
+app.use("/api/uploads", express.static(UPLOAD_DIR));
 
 // Error yang tidak tertangkap (misalnya database mati)
 app.use((err, req, res, next) => {
+  if (err.type === "entity.too.large") return sendError(res, 413, "FOTO_TERLALU_BESAR", "Ukuran foto maksimal 5 MB");
   console.error(err);
   sendError(res, 500, "SERVER_ERROR", "Terjadi kesalahan di server");
 });

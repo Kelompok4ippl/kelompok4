@@ -1,0 +1,7 @@
+# Hasil graphify (knowledge graph lokal)
+graphify-out/
+
+# Dokumen lokal (tidak di-push)
+prd.md
+architecture.md
+.claude
