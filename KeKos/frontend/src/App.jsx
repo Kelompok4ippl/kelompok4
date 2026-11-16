@@ -26,7 +26,6 @@ function AnimatedRoutes() {
         <Routes location={location}>
           {/* Masuk & daftar */}
           <Route path="/" element={<Login />} />
-          <Route path="/salah-pw" element={<Login initialError />} />
           <Route path="/register" element={<Register />} />
           <Route path="/buat-akun" element={<Navigate to="/register" replace />} />
 

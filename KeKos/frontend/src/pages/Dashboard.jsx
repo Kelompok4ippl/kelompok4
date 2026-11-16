@@ -10,6 +10,7 @@ import { useApi } from "../hooks/useApi.js";
 import { useDragScroll } from "../hooks/useDragScroll.js";
 import { useScrollEffects } from "../hooks/useScrollEffects.js";
 import { CAMPUS, RADIUS_METERS, distanceMeters, hasLocation } from "../lib/maps.js";
+import { rupiah } from "../lib/format.js";
 
 import heroImg from "../assets/sunlit-mediterranean-hilltop-town-and-church-1.png";
 // Foto yang sama tanpa langit (hanya gedung), ditumpuk di atas garis supaya garis lewat di belakang rumah
@@ -21,7 +22,7 @@ import searchIcon from "../assets/search.svg";
 import checkIcon from "../assets/check.svg";
 
 const TYPES = [
-  { value: "", label: "All" },
+  { value: "", label: "Semua" },
   { value: "putra", label: "Putra" },
   { value: "putri", label: "Putri" },
   { value: "campur", label: "Campur" },
@@ -60,16 +61,35 @@ export default function Dashboard({ notifOpenInitially = false }) {
   const [facilities, setFacilities] = useState([]);
   const [search, setSearch] = useState("");
   const [mapOpen, setMapOpen] = useState(false);
+  const zoomButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (!mapOpen) return;
+    const onKey = (e) => e.key === "Escape" && setMapOpen(false);
+    document.addEventListener("keydown", onKey);
+    const opener = zoomButtonRef.current;
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      opener?.focus();
+    };
+  }, [mapOpen]);
   // Filter baru dipakai setelah tombol "Apply Filters" diklik; pencarian langsung (dengan jeda)
   const [applied, setApplied] = useState({ type: "", maxPrice: MAX_PRICE, facilities: [] });
   const [q, setQ] = useState("");
 
   useEffect(() => {
-    const t = setTimeout(() => setQ(search), 400);
+    const t = setTimeout(() => setQ(search), 350);
     return () => clearTimeout(t);
   }, [search]);
 
   const listPath = useMemo(() => buildQuery({ ...applied, q }), [applied, q]);
+  const isFiltered = type !== "" || maxPrice < MAX_PRICE || facilities.length > 0;
+  const resetFilters = () => {
+    setType("");
+    setMaxPrice(MAX_PRICE);
+    setFacilities([]);
+    setApplied({ type: "", maxPrice: MAX_PRICE, facilities: [] });
+  };
   const kosList = useApi(listPath);
   const allKos = useApi("/kos");
   const { ref: sliderRef, canPrev, canNext, slide } = useDragScroll();
@@ -118,7 +138,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
           </svg>
           <img src={heroBuildingsImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
         </div>
-        <Navbar notifOpenInitially={notifOpenInitially} />
+        <Navbar notifOpenInitially={notifOpenInitially} overlay />
         <div data-scroll-fade className="relative z-10 px-6 pt-[160px] sm:pl-[16%] sm:pt-[209px]">
           <h1 data-reveal="left" className="font-poppins text-[34px] font-bold leading-tight text-white sm:text-[48px]">Halo, Sobat KeKos!</h1>
           <p data-reveal="left" style={{ "--reveal-delay": "120ms" }} className="font-poppins text-[22px] text-white sm:text-[32px]">
@@ -155,7 +175,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
             <p className="flex-1 font-poppins text-lg text-black sm:text-[32px]">
               {allKos.data ? nearby : "…"} kos terdeteksi di sekitar radius {RADIUS_METERS / 1000}km
             </p>
-            <button type="button" onClick={() => setMapOpen(true)} aria-label="Perbesar peta" className="shrink-0">
+            <button ref={zoomButtonRef} type="button" onClick={() => setMapOpen(true)} aria-label="Perbesar peta" className="flex h-11 w-11 shrink-0 items-center justify-center sm:h-auto sm:w-auto">
               <img src={zoomIcon} alt="" className="h-9 w-9 sm:h-[53px] sm:w-[53px]" />
             </button>
           </div>
@@ -173,6 +193,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
         {mapOpen && (
           <motion.div
             role="dialog"
+            aria-modal="true"
             aria-label="Peta persebaran kos"
             className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000cc] p-4"
             onClick={() => setMapOpen(false)}
@@ -191,7 +212,12 @@ export default function Dashboard({ notifOpenInitially = false }) {
             >
               <KosMap kos={allKos.data || []} interactive className="h-full w-full" />
             </motion.div>
-            <button type="button" className="absolute right-6 top-6 z-[1000] rounded-full bg-white px-4 py-2 font-poppins text-sm shadow">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setMapOpen(false)}
+              className="absolute right-6 top-6 z-[1000] h-11 rounded-full bg-white px-5 font-poppins text-sm shadow"
+            >
               Tutup
             </button>
           </motion.div>
@@ -207,26 +233,26 @@ export default function Dashboard({ notifOpenInitially = false }) {
           Cari dan bandingkan berbagai pilihan kos berdasarkan harga, tipe kos, fasilitas, dan lokasi sesuai kebutuhanmu.
         </p>
 
-        <div data-reveal="up" style={{ "--reveal-delay": "200ms" }} className="mx-auto mt-11 max-w-[1052px] rounded-xl border-[3px] border-black bg-white p-4 shadow-[0_4px_10px_#00000040] sm:px-[15px] sm:pb-4 sm:pt-[14px]">
+        <div data-reveal="up" style={{ "--reveal-delay": "200ms" }} className="mx-auto mt-11 max-w-[1052px] rounded-2xl border border-[#e4e4ea] bg-white p-5 shadow-[0_10px_30px_#0000000f] sm:p-6">
           <div className="flex flex-col gap-8 md:flex-row md:justify-between">
             <div className="md:w-[491px]">
-              <p className="font-inter text-[11px] font-bold tracking-wide text-[#555]">KOS TYPE</p>
-              <div className="mt-3 inline-flex rounded-md bg-[#f1f1f1] p-[5px]" role="group" aria-label="Tipe kos">
+              <p className="font-inter text-xs font-semibold tracking-wider text-[#555]">TIPE KOS</p>
+              <div className="mt-3 inline-flex rounded-full bg-[#f1f1f4] p-1" role="group" aria-label="Tipe kos">
                 {TYPES.map((t) => (
                   <button
                     key={t.value}
                     type="button"
                     aria-pressed={type === t.value}
                     onClick={() => setType(t.value)}
-                    className={`relative h-6 w-[65px] rounded font-inter text-[11px] ${
-                      type === t.value ? "font-semibold text-black" : "text-[#555]"
+                    className={`relative h-8 w-[72px] rounded-full font-inter text-xs transition-colors ${
+                      type === t.value ? "font-semibold text-black" : "text-[#666] hover:text-black"
                     }`}
                   >
                     {/* Satu latar putih yang meluncur ke tombol terpilih (layoutId yang sama) */}
                     {type === t.value && (
                       <motion.span
                         layoutId="tipe-kos-aktif"
-                        className="absolute inset-0 rounded bg-white shadow-[0_1px_2px_#00000040]"
+                        className="absolute inset-0 rounded-full bg-white shadow-[0_1px_4px_#00000026]"
                         transition={{ type: "spring", stiffness: 500, damping: 35 }}
                       />
                     )}
@@ -235,12 +261,12 @@ export default function Dashboard({ notifOpenInitially = false }) {
                 ))}
               </div>
 
-              <div className="mt-2 flex items-center justify-between">
-                <label htmlFor="budget" className="font-inter text-[9px] font-bold tracking-wide text-[#555]">
-                  MONTHLY BUDGET
+              <div className="mt-5 flex items-center justify-between">
+                <label htmlFor="budget" className="font-inter text-xs font-semibold tracking-wider text-[#555]">
+                  BUDGET PER BULAN
                 </label>
                 <span className="font-inter text-xs font-semibold text-black">
-                  IDR {MIN_PRICE.toLocaleString("en-US")} - {maxPrice.toLocaleString("en-US")}
+                  {rupiah(MIN_PRICE)} - {rupiah(maxPrice)}
                   {maxPrice >= MAX_PRICE ? "+" : ""}
                 </span>
               </div>
@@ -255,15 +281,15 @@ export default function Dashboard({ notifOpenInitially = false }) {
                 className="kekos-range mt-5 w-full"
                 style={{ "--fill": `${fill}%` }}
               />
-              <div className="mt-1 flex justify-between font-inter text-[10px] text-[#666]">
-                <span>Rp 500,000</span>
-                <span>Rp 1,500,000</span>
-                <span>Rp 3,000,000&gt;</span>
+              <div className="mt-1 flex justify-between font-inter text-xs text-[#555]">
+                <span>{rupiah(MIN_PRICE)}</span>
+                <span>{rupiah(1500000)}</span>
+                <span>{rupiah(MAX_PRICE)}+</span>
               </div>
             </div>
 
             <div className="md:w-[399px]">
-              <p className="font-inter text-[11px] font-bold tracking-wide text-[#555]">FILTER</p>
+              <p className="font-inter text-xs font-semibold tracking-wider text-[#555]">FASILITAS</p>
               <div className="mt-3 flex flex-wrap gap-x-2.5 gap-y-3">
                 {FACILITIES.map((f) => {
                   const on = facilities.includes(f.value);
@@ -274,15 +300,17 @@ export default function Dashboard({ notifOpenInitially = false }) {
                       aria-pressed={on}
                       onClick={() => toggleFacility(f.value)}
                       whileTap={{ scale: 0.9 }}
-                      className={`inline-flex h-[26px] items-center gap-1.5 rounded-full border px-[11px] font-inter text-[11px] ${
-                        on ? "border-[#8f8f8f] bg-[#d9d9d9] text-black" : "border-[#8f8f8f] bg-white text-black"
+                      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 font-inter text-xs transition-colors ${
+                        on
+                          ? "border-[#7d7fff] bg-[#7d7fff1a] font-medium text-[#4b4dd6]"
+                          : "border-[#dcdce2] bg-white text-[#333] hover:border-[#9a9aa5]"
                       }`}
                     >
                       {on && (
                         <motion.img
                           src={checkIcon}
                           alt=""
-                          className="h-[6px] w-2"
+                          className="h-[7px] w-[10px]"
                           initial={{ scale: 0, rotate: -90 }}
                           animate={{ scale: 1, rotate: 0 }}
                           transition={{ type: "spring", stiffness: 500, damping: 20 }}
@@ -293,28 +321,45 @@ export default function Dashboard({ notifOpenInitially = false }) {
                   );
                 })}
               </div>
-              <motion.button
-                type="button"
-                onClick={() => setApplied({ type, maxPrice, facilities })}
-                whileTap={{ scale: 0.97 }}
-                className="mt-4 h-10 w-full max-w-[308px] rounded-md bg-black font-inter text-sm font-medium text-white hover:bg-[#222] md:ml-11"
-              >
-                Apply Filters (
-                {/* Angka baru turun masuk setiap jumlah hasil berubah */}
-                <motion.span
-                  key={kosList.data ? kosList.data.length : 0}
-                  className="inline-block"
-                  initial={{ y: -10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
+              <div className="mt-5 flex items-center justify-between gap-3">
+                <motion.button
+                  type="button"
+                  onClick={() => setApplied({ type, maxPrice, facilities })}
+                  whileTap={{ scale: 0.97 }}
+                  aria-live="polite"
+                  className="h-10 flex-1 rounded-md bg-black px-4 font-inter text-sm font-medium text-white hover:bg-[#222] sm:max-w-[308px]"
                 >
-                  {kosList.data ? kosList.data.length : 0}
-                </motion.span>{" "}
-                Kos)
-              </motion.button>
+                  Apply Filters (
+                  {/* Angka baru turun masuk setiap jumlah hasil berubah */}
+                  <motion.span
+                    key={kosList.data ? kosList.data.length : 0}
+                    className="inline-block"
+                    initial={{ y: -10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                  >
+                    {kosList.data ? kosList.data.length : 0}
+                  </motion.span>{" "}
+                  Kos)
+                </motion.button>
+                <AnimatePresence>
+                  {isFiltered && (
+                    <motion.button
+                      type="button"
+                      onClick={resetFilters}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 8 }}
+                      className="rounded-full px-3 py-1 font-inter text-xs font-medium text-[#4b4dd6] hover:bg-[#7d7fff1a]"
+                    >
+                      Reset filter
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
 
-          <label className="mx-auto mt-8 flex h-[50px] max-w-[478px] items-center gap-3 rounded-lg border border-[#9b9b9b] bg-white px-7 sm:h-[59px]">
+          <label className="mx-auto mt-8 flex h-[50px] max-w-[478px] items-center gap-3 rounded-full border border-[#dcdce2] bg-white px-6 transition-colors focus-within:border-[#7d7fff] sm:h-[56px]">
             <img src={searchIcon} alt="" className="h-7 w-7" />
             <span className="sr-only">Cari kos</span>
             <input
@@ -357,12 +402,26 @@ export default function Dashboard({ notifOpenInitially = false }) {
           {kosList.loading && <p className="font-roboto text-sm text-[#555]">Memuat kos...</p>}
           {kosList.error && <p className="font-roboto text-sm text-[#c00]">{kosList.error}</p>}
           {kosList.data?.length === 0 && (
-            <p className="font-roboto text-sm text-[#555]">Tidak ada kos yang cocok. Coba ubah filter.</p>
+            <div className="flex flex-col items-start gap-3">
+              <p className="font-roboto text-sm text-[#555]">Kos tidak ditemukan. Coba ubah filter atau kata kunci.</p>
+              {(isFiltered || search) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetFilters();
+                    setSearch("");
+                  }}
+                  className="h-11 rounded-full border border-black px-5 font-poppins text-sm hover:bg-black hover:text-white"
+                >
+                  Reset filter &amp; pencarian
+                </button>
+              )}
+            </div>
           )}
           {/* Saat hasil filter berubah: kartu yang hilang mengecil & memudar, kartu yang tersisa meluncur
               ke posisi barunya. Kartu baru tetap muncul lewat data-reveal (CSS) di dalamnya. */}
           <AnimatePresence mode="popLayout">
-          {kosList.data?.map((kos, i) => (
+          {kosList.data?.map((kos) => (
             <motion.div
               key={kos.id}
               layout
@@ -371,7 +430,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="snap-start"
             >
-            <div data-reveal="card" style={{ "--reveal-delay": `${Math.min(i, 4) * 120}ms` }}>
+            <div>
               <KosCard kos={kos}>
                 <div className="mt-3 flex items-center justify-center gap-[18px]">
                   <Link
