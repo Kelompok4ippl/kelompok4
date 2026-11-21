@@ -33,5 +33,5 @@ export function getCurrentUser() {
 
 // Halaman awal setelah login sesuai peran
 export function homeFor(role) {
-  return role === "pemilik" ? "/pemilik/kos" : "/dashboard";
+  return { pemilik: "/pemilik/kos", admin: "/admin/verifikasi" }[role] || "/dashboard";
 }

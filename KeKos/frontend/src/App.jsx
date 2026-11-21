@@ -8,10 +8,15 @@ import BookingKos from "./pages/BookingKos";
 import PemilikKos from "./pages/PemilikKos";
 import PemilikKamar from "./pages/PemilikKamar";
 import PemilikNotifikasi from "./pages/PemilikNotifikasi";
+import AdminVerifikasi from "./pages/AdminVerifikasi";
+import AdminMonitoring from "./pages/AdminMonitoring";
+import AdminAkun from "./pages/AdminAkun";
+import AdminNotifikasi from "./pages/AdminNotifikasi";
 import RequireRole from "./components/RequireRole";
 
 const pencari = (page) => <RequireRole role="pencari">{page}</RequireRole>;
 const pemilik = (page) => <RequireRole role="pemilik">{page}</RequireRole>;
+const admin = (page) => <RequireRole role="admin">{page}</RequireRole>;
 
 // Halaman lama memudar keluar, lalu halaman baru memudar masuk.
 // Sengaja hanya opacity: transform di pembungkus akan merusak elemen position:fixed di dalam halaman.
@@ -43,6 +48,13 @@ function AnimatedRoutes() {
           <Route path="/pemilik/kos" element={pemilik(<PemilikKos />)} />
           <Route path="/pemilik/kamar" element={pemilik(<PemilikKamar />)} />
           <Route path="/pemilik/notifikasi" element={pemilik(<PemilikNotifikasi />)} />
+
+          {/* Admin */}
+          <Route path="/admin" element={<Navigate to="/admin/verifikasi" replace />} />
+          <Route path="/admin/verifikasi" element={admin(<AdminVerifikasi />)} />
+          <Route path="/admin/monitoring" element={admin(<AdminMonitoring />)} />
+          <Route path="/admin/akun" element={admin(<AdminAkun />)} />
+          <Route path="/admin/notifikasi" element={admin(<AdminNotifikasi />)} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

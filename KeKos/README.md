@@ -1,6 +1,6 @@
-# KeKos — Sprint 2: Fitur Pencari Kos
+# KeKos
 
-Versi ini hanya berisi fitur yang masuk **Sprint 2**:
+**Pencari kos**:
 
 - **Login & daftar akun** (akun baru otomatis menjadi pencari kos)
 - **Dashboard pencari kos**: pencarian & filter (tipe, harga, fasilitas), peta persebaran kos, kartu kos yang bisa digeser
@@ -8,7 +8,9 @@ Versi ini hanya berisi fitur yang masuk **Sprint 2**:
 - **Booking kos** oleh pencari (status "menunggu" sampai diproses pemilik)
 - **Notifikasi** pencari kos
 
-Fitur pemilik kos dan admin tidak ada di versi ini (menyusul Sprint 3).
+**Pemilik kos** (pilih "Pemilik kos" saat login): kelola kos & foto, tipe kamar, terima/tolak booking masuk, lihat peringatan admin.
+
+**Admin**: verifikasi listing kos baru, monitoring kos yang tidak diperbarui (peringatan / hapus), aktif-nonaktifkan akun, notifikasi & log tindakan.
 
 ```
 KeKos/
@@ -58,10 +60,11 @@ Password semua akun: `password123`
 
 | Email | Keterangan |
 |---|---|
+| `admin@kekos.local` | Admin: verifikasi kos, monitoring kos tidak diperbarui, kelola akun (pilih peran apa saja di form login) |
 | `pencari@kekos.test` | Booking di *Kos Putra* sudah diterima (bisa menulis ulasan, nomor WA pemilik terbuka) |
 | `siti@contoh.local` | Pencari kos |
 | `dyandra@gmail.com` | Booking di *Cozy kos* masih menunggu |
-| `budi@contoh.local` | Pemilik beberapa kos contoh (login pemilik menyusul di Sprint 3) |
+| `budi@contoh.local` | Pemilik beberapa kos contoh (login sebagai **Pemilik kos**) |
 
 Bisa juga membuat akun baru lewat **Daftar sekarang** di halaman login.
 
@@ -72,6 +75,8 @@ Bisa juga membuat akun baru lewat **Daftar sekarang** di halaman login.
 4. Buka *Kos Putra* → lihat detail & ulasan, tulis ulasan (hanya penyewa yang booking-nya diterima yang bisa memberi ulasan).
 5. Lanjut ke booking → pilih tipe kamar → **Booking Sekarang** → status berubah menjadi menunggu.
 6. Logout (ikon panah kanan atas), lalu coba daftar akun baru.
+7. Login sebagai **Pemilik kos** dengan `budi@contoh.local` → tambah/edit kos dan kamar, buka **Notifikasi Booking Masuk** untuk menerima/menolak booking.
+8. Login dengan `admin@kekos.local` → **Verifikasi Kos** (ada 1 kos menunggu), **Monitoring Kos** (ada kos 2 dan 3 bulan tidak diperbarui), **Kelola Akun**.
 
 ## Kalau ada masalah
 - **`Terjadi kesalahan di server` / `Access denied for user 'root'`**: password di `backend\.env` belum sama dengan password MySQL.

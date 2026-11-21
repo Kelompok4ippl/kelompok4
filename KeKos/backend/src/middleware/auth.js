@@ -1,18 +1,26 @@
 import jwt from "jsonwebtoken";
+import { pool } from "../db.js";
 
 // Cek header "Authorization: Bearer <token>" lalu simpan data sesi di req.user
 // (id, email, peran yang dipilih saat login: "pencariKos" / "pemilikKos", atau role "admin")
-export function requireAuth(req, res, next) {
+export async function requireAuth(req, res, next) {
   const header = req.headers.authorization || "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
   if (!token) return sendError(res, 401, "BELUM_LOGIN", "Silakan login dulu");
 
   try {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
   } catch {
-    sendError(res, 401, "SESI_BERAKHIR", "Sesi habis, silakan login lagi");
+    return sendError(res, 401, "SESI_BERAKHIR", "Sesi habis, silakan login lagi");
   }
+  // Akun yang dinonaktifkan admin langsung keluar, walaupun tokennya belum kedaluwarsa
+  try {
+    const [rows] = await pool.query("SELECT status_akun FROM pengguna WHERE id_pengguna = ?", [req.user.id]);
+    if (rows[0]?.status_akun !== "aktif") return sendError(res, 401, "SESI_BERAKHIR", "Akun Anda dinonaktifkan");
+  } catch (err) {
+    return next(err);
+  }
+  next();
 }
 
 // Dipakai setelah requireAuth: hanya peran sesi tertentu yang boleh lewat
