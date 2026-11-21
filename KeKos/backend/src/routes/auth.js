@@ -20,7 +20,7 @@ function publicUser(user, peran) {
     email: user.email,
     telepon: user.no_hp ?? null,
     peran,
-    role: peran === "pencariKos" ? "pencari" : "pemilik",
+    role: { pencariKos: "pencari", pemilikKos: "pemilik", admin: "admin" }[peran],
   };
 }
 
@@ -52,7 +52,7 @@ router.post("/register", async (req, res) => {
   res.status(201).json({ user: { id: result.insertId, nama, email, telepon: noHp } });
 });
 
-// POST /api/auth/login  { email, password, peran? }  peran: "pencariKos" (default) / "pemilikKos"
+// POST /api/auth/login  { email, password, peran? }  peran: "pencariKos" (default) / "pemilikKos"; akun admin -> "admin"
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const peran = req.body.peran || "pencariKos";
@@ -66,11 +66,11 @@ router.post("/login", async (req, res) => {
     return sendError(res, 401, "LOGIN_GAGAL", "Email atau password salah");
   }
   if (user.status_akun === "nonaktif") return sendError(res, 403, "AKUN_NONAKTIF", "Akun Anda dinonaktifkan");
-  // Halaman admin belum ada; pencari dan pemilik kos sudah bisa login
-  if (user.role === "admin") return sendError(res, 403, "BELUM_TERSEDIA", "Halaman admin belum tersedia");
+  // Akun admin selalu masuk sebagai admin, apa pun peran yang dipilih di form login
+  const sesi = user.role === "admin" ? "admin" : peran;
 
   await pool.query("CALL sp_catat_login(?)", [user.id_pengguna]);
-  res.json({ token: makeToken(user, peran), user: publicUser(user, peran) });
+  res.json({ token: makeToken(user, sesi), user: publicUser(user, sesi) });
 });
 
 // GET /api/auth/me  (perlu token)

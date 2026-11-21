@@ -5,6 +5,7 @@ import kosRoutes from "./routes/kos.js";
 import bookingRoutes from "./routes/booking.js";
 import notifikasiRoutes from "./routes/notifikasi.js";
 import pemilikRoutes, { UPLOAD_DIR } from "./routes/pemilik.js";
+import adminRoutes from "./routes/admin.js";
 import { sendError } from "./middleware/auth.js";
 import { pool } from "./db.js";
 import { KOS_SELECT, toKos } from "./format.js";
@@ -31,6 +32,7 @@ app.use("/api/kos", kosRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
 app.use("/api/pemilik", pemilikRoutes);
+app.use("/api/admin", adminRoutes);
 // Foto kos yang diupload pemilik (nama file acak, hanya gambar yang lolos cek isi file)
 app.use("/api/uploads", express.static(UPLOAD_DIR));
 

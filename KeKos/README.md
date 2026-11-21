@@ -1,4 +1,4 @@
-# KeKos — Fitur Pencari Kos & Pemilik Kos
+# KeKos — Fitur Pencari Kos, Pemilik Kos & Admin
 
 **Pencari kos**
 - **Login & daftar akun** (akun baru otomatis menjadi pencari kos)
@@ -12,7 +12,11 @@
 - **Kelola tipe kamar**: tambah/ubah tipe kamar, harga, jumlah kamar, tandai tersedia/penuh
 - **Booking masuk**: terima atau tolak booking dari pencari kos, plus riwayat dan notifikasi
 
-Halaman admin belum ada (akun admin ditolak saat login).
+**Admin** (login dengan akun admin, tab peran bebas)
+- **Verifikasi kos**: setujui atau tolak (dengan alasan) listing kos baru
+- **Monitoring kos**: kos yang tidak diperbarui ≥ 2 bulan diberi peringatan, ≥ 3 bulan bisa dihapus
+- **Kelola akun**: aktifkan/nonaktifkan akun pengguna (akun nonaktif langsung tidak bisa dipakai)
+- **Notifikasi & log**: booking baru dari semua kos dan catatan tindakan admin
 
 ```
 KeKos/
@@ -62,6 +66,7 @@ Password semua akun: `password123`
 
 | Email | Keterangan |
 |---|---|
+| `admin@kekos.local` | Admin: verifikasi kos, monitoring kos tidak diperbarui, kelola akun (pilih peran apa saja di form login) |
 | `pencari@kekos.test` | Booking di *Kos Putra* sudah diterima (bisa menulis ulasan, nomor WA pemilik terbuka) |
 | `siti@contoh.local` | Pencari kos |
 | `dyandra@gmail.com` | Booking di *Cozy kos* masih menunggu |
@@ -79,6 +84,7 @@ Bisa juga membuat akun baru lewat **Daftar sekarang** di halaman login.
 7. Buka notifikasi pemilik → **terima** booking tadi. Login lagi sebagai pencari untuk melihat statusnya berubah.
 8. Sebagai pemilik, coba tambah kos/tipe kamar dan upload foto.
 9. Coba daftar akun baru lewat **Daftar sekarang**.
+10. Login dengan `admin@kekos.local` → **Verifikasi Kos** (ada 1 kos menunggu), **Monitoring Kos** (ada kos 2 dan 3 bulan tidak diperbarui), **Kelola Akun**.
 
 ## Kalau ada masalah
 - **`Terjadi kesalahan di server` / `Access denied for user 'root'`**: password di `backend\.env` belum sama dengan password MySQL.

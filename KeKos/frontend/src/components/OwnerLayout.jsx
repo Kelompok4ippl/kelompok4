@@ -12,7 +12,8 @@ const MENU = [
 // Kerangka halaman pemilik kos (frame Figma "KeKos - Daftar Kos/Kamar"):
 // sidebar hitam di kiri, isi di tengah, dan panel form hitam di kanan (opsional).
 // Di layar kecil sidebar jadi bilah menu di atas dan panel turun ke bawah isi.
-export default function OwnerLayout({ title, panel, className = "bg-white", children }) {
+// menu/menuLabel diganti untuk halaman admin (AdminLayout di bawah)
+export default function OwnerLayout({ title, panel, className = "bg-white", menu = MENU, menuLabel = "Menu pemilik kos", children }) {
   const navigate = useNavigate();
   const handleLogout = () => {
     logout();
@@ -32,8 +33,8 @@ export default function OwnerLayout({ title, panel, className = "bg-white", chil
             <Icon src={logoutIcon} className="h-5 w-5" />
           </button>
         </div>
-        <nav aria-label="Menu pemilik kos" className="-mx-1 flex gap-2 overflow-x-auto px-1 lg:mx-0 lg:mt-8 lg:flex-col lg:gap-4 lg:px-0">
-          {MENU.map((m) => (
+        <nav aria-label={menuLabel} className="-mx-1 flex gap-2 overflow-x-auto px-1 lg:mx-0 lg:mt-8 lg:flex-col lg:gap-4 lg:px-0">
+          {menu.map((m) => (
             <NavLink
               key={m.to}
               to={m.to}
@@ -69,4 +70,15 @@ export default function OwnerLayout({ title, panel, className = "bg-white", chil
       )}
     </div>
   );
+}
+
+const ADMIN_MENU = [
+  { to: "/admin/verifikasi", label: "Verifikasi Kos" },
+  { to: "/admin/monitoring", label: "Monitoring Kos" },
+  { to: "/admin/akun", label: "Kelola Akun" },
+  { to: "/admin/notifikasi", label: "Notifikasi & Log" },
+];
+
+export function AdminLayout(props) {
+  return <OwnerLayout menu={ADMIN_MENU} menuLabel="Menu admin" {...props} />;
 }
