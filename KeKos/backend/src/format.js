@@ -82,6 +82,8 @@ export function toTipeKamar(row) {
     totalRooms: row.jumlah_kamar,
     // Tipe yang ditandai "penuh" oleh pemilik dianggap tidak tersedia
     available: row.status_ketersediaan === "tersedia" ? row.jumlah_tersedia : 0,
+    // Jumlah kamar kosong sebenarnya (untuk form pemilik), tanpa melihat saklar ketersediaan
+    vacant: row.jumlah_tersedia,
     status: row.status_ketersediaan,
     facilities: list(row.fasilitas),
     description: row.deskripsi,

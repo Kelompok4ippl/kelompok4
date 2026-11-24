@@ -1,61 +1,81 @@
-import Facility from "./Facility.jsx";
-import GenderBadge from "./GenderBadge.jsx";
-import { imageUrl, rupiah } from "../lib/format.js";
-import locationIcon from "../assets/location.svg";
+import { FacilityChip } from "./OwnerForm.jsx";
+import { LineIcon } from "./Icon.jsx";
+import { imageUrl, rupiah, KOS_TYPE_LABEL } from "../lib/format.js";
 
-// Kartu kos bergaris hitam (dashboard pencari & daftar kos pemilik).
-// headerAction: tombol kecil di samping nama (misalnya "Edit"), children: bagian bawah kartu.
+// Warna label tipe kos di pojok foto (sama dengan kartu di panel pemilik)
+const TYPE_TAG = {
+  putra: "bg-[#e3ecf6] text-steel",
+  putri: "bg-[#f6e6ee] text-[#9a4069]",
+  campur: "bg-[#ece8f5] text-[#5f4c95]",
+};
+
+// Kartu kos pencari (redesign): foto + tipe + sisa kamar, nama, rating, lokasi, fasilitas, harga.
+// headerAction: tombol kecil di samping nama, children: bagian bawah kartu (mis. tombol Detail & Booking cepat).
 export default function KosCard({ kos, headerAction, showBadge = true, showRating = true, hidePrice = false, children }) {
-  const badge = kos.roomsLeft > 0 ? `Sisa ${kos.roomsLeft} Kamar!` : "Penuh";
+  const penuh = kos.roomsLeft <= 0;
   return (
-    <article className="relative flex w-[308px] shrink-0 flex-col rounded-[10px] border-[3px] border-black bg-white px-2 pb-3 pt-2 text-ink shadow-[0_4px_10px_#00000040]">
-      <div className="relative">
-        <GenderBadge type={kos.type} />
-        <img
-          src={imageUrl(kos.image)}
-          alt={kos.name}
-          draggable={false}
-          className="aspect-[292/164] w-full rounded-md object-cover"
-        />
-        {showBadge && (
-          <span className="absolute bottom-2 right-2 rounded-lg bg-badge-soft px-[7px] py-1 font-roboto text-[13px] font-medium text-badge">
-            {badge}
+    <article className="flex h-full flex-col overflow-hidden rounded-[18px] border border-steel-line bg-white font-poppins text-steel-ink shadow-steel transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-steel-lg motion-reduce:transition-none">
+      <div className="relative aspect-[16/10] bg-steel-tint">
+        <img src={imageUrl(kos.image)} alt={kos.name} draggable={false} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-b from-[rgba(15,30,50,.28)] to-transparent to-40%" />
+        <div className="absolute inset-x-3 top-3 flex justify-between gap-2">
+          <span className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold tracking-[.02em] ${TYPE_TAG[kos.type] || TYPE_TAG.campur}`}>
+            {(KOS_TYPE_LABEL[kos.type] || kos.type || "").toUpperCase()}
           </span>
-        )}
+          {showBadge && (
+            <span className={`inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold ${penuh ? "text-bad" : "text-ok"}`}>
+              <span aria-hidden="true" className="h-[7px] w-[7px] rounded-full bg-current" />
+              {penuh ? "Penuh" : `Sisa ${kos.roomsLeft} kamar`}
+            </span>
+          )}
+        </div>
       </div>
-      <div className="mt-2 flex items-start justify-between gap-2 px-1">
-        <h3 className="font-roboto text-base font-medium">{kos.name}</h3>
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex items-start gap-2">
+          <h3 className="min-w-0 flex-1 text-base font-semibold leading-snug">{kos.name}</h3>
+          {headerAction}
+        </div>
         {showRating && (
-          <p className="whitespace-nowrap font-roboto text-[13px]">
+          <p className="flex items-center gap-1 text-xs text-steel-muted">
             {kos.reviews > 0 ? (
               <>
-                {kos.rating.toFixed(1)} <span className="text-star">★</span>{" "}
-                <span className="text-muted">({kos.reviews})</span>
+                <span aria-hidden="true" className="text-amber">★</span>
+                <span className="font-semibold text-steel-ink">{kos.rating.toFixed(1)}</span> ({kos.reviews} ulasan)
               </>
             ) : (
-              <span className="text-muted">Belum ada ulasan</span>
+              "Belum ada ulasan"
             )}
           </p>
         )}
-        {headerAction}
+        {(kos.area || kos.distance || kos.address) && (
+          <p className="flex items-start gap-1.5 text-xs text-steel-muted">
+            <LineIcon name="pin" className="mt-px h-3.5 w-3.5" />
+            {[kos.area || kos.address, kos.distance].filter(Boolean).join(" • ")}
+          </p>
+        )}
+        {kos.facilities.length > 0 && (
+          <ul className="flex flex-wrap gap-1.5">
+            {kos.facilities.map((f) => (
+              <li key={f}>
+                <FacilityChip name={f} />
+              </li>
+            ))}
+          </ul>
+        )}
+        {!hidePrice && (
+          <p className="mt-auto pt-1">
+            {kos.price ? (
+              <>
+                <span className="text-lg font-semibold tabular-nums">{rupiah(kos.price, { short: true })}</span>
+                <span className="text-xs text-steel-muted"> /bln</span>
+              </>
+            ) : (
+              <span className="text-xs text-steel-muted">Harga belum diatur</span>
+            )}
+          </p>
+        )}
+        {children}
       </div>
-      {(kos.area || kos.distance) && (
-        <p className="mt-1 flex items-center gap-1 px-1 font-roboto text-xs text-body">
-          <img src={locationIcon} alt="" className="h-3.5 w-3.5" />
-          {[kos.area, kos.distance].filter(Boolean).join(" • ")}
-        </p>
-      )}
-      {!hidePrice && (
-        <p className="mt-1 px-1 font-roboto text-base">{kos.price ? `${rupiah(kos.price, { short: true })}/bln` : "Harga belum diatur"}</p>
-      )}
-      <ul className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 px-1">
-        {kos.facilities.map((f) => (
-          <li key={f}>
-            <Facility name={f} />
-          </li>
-        ))}
-      </ul>
-      {children}
     </article>
   );
 }

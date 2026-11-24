@@ -5,11 +5,11 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import DetailKos from "./pages/DetailKos";
 import BookingKos from "./pages/BookingKos";
+import RiwayatKos from "./pages/RiwayatKos";
 import PemilikKos from "./pages/PemilikKos";
 import PemilikKamar from "./pages/PemilikKamar";
 import PemilikNotifikasi from "./pages/PemilikNotifikasi";
 import AdminVerifikasi from "./pages/AdminVerifikasi";
-import AdminMonitoring from "./pages/AdminMonitoring";
 import AdminAkun from "./pages/AdminAkun";
 import AdminNotifikasi from "./pages/AdminNotifikasi";
 import RequireRole from "./components/RequireRole";
@@ -42,6 +42,7 @@ function AnimatedRoutes() {
           <Route path="/notifikasi" element={pencari(<Dashboard notifOpenInitially />)} />
           <Route path="/kos/:id" element={<DetailKos />} />
           <Route path="/kos/:id/booking" element={pencari(<BookingKos />)} />
+          <Route path="/riwayat" element={pencari(<RiwayatKos />)} />
 
           {/* Pemilik kos */}
           <Route path="/pemilik" element={<Navigate to="/pemilik/kos" replace />} />
@@ -52,7 +53,8 @@ function AnimatedRoutes() {
           {/* Admin */}
           <Route path="/admin" element={<Navigate to="/admin/verifikasi" replace />} />
           <Route path="/admin/verifikasi" element={admin(<AdminVerifikasi />)} />
-          <Route path="/admin/monitoring" element={admin(<AdminMonitoring />)} />
+          {/* Monitoring kos sudah digabung ke halaman Verifikasi */}
+          <Route path="/admin/monitoring" element={<Navigate to="/admin/verifikasi" replace />} />
           <Route path="/admin/akun" element={admin(<AdminAkun />)} />
           <Route path="/admin/notifikasi" element={admin(<AdminNotifikasi />)} />
 

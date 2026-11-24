@@ -29,6 +29,27 @@
   --color-badge-soft: #ffebe3;
   --color-star: #ffb918;
 
+  /* Redesign 2026: biru baja redup, putih, aksen kuning madu (tanpa hitam) */
+  --steel-side: #1d3a5c;
+  --steel-side-2: #2a4d75;
+  --steel: #2e5e8e;
+  --steel-strong: #244a71;
+  --steel-tint: #e8eff6;
+  --steel-tint-2: #f1f5fa;
+  --steel-bg: #f3f6f9;
+  --steel-line: #dce3eb;
+  --steel-ink: #1a2b3f;
+  --steel-body: #46586c;
+  --steel-muted: #5f7186;
+  --steel-dash: #9db5ce;
+  --amber: #d9a23a;
+  --amber-soft: #fbf1dc;
+  --amber-ink: #6b4d12;
+  --ok: #2e7d57;
+  --ok-soft: #e4f2ea;
+  --bad: #a94438;
+  --bad-soft: #f8e6e3;
+
   --font-heading: "Poppins", Helvetica, Arial, sans-serif;
   --font-body: "Inter", Helvetica, Arial, sans-serif;
 }
@@ -112,7 +133,7 @@ textarea:not(.outline-none):focus-visible,
   appearance: none;
   height: 6px;
   border-radius: 999px;
-  background: linear-gradient(to right, #7d7fff var(--fill, 50%), #e4e4ea var(--fill, 50%));
+  background: linear-gradient(to right, #2e5e8e var(--fill, 50%), #e3e9f0 var(--fill, 50%));
   cursor: pointer;
 }
 .kekos-range::-webkit-slider-thumb {
@@ -121,7 +142,7 @@ textarea:not(.outline-none):focus-visible,
   height: 20px;
   border-radius: 999px;
   background: #fff;
-  border: 3px solid #7d7fff;
+  border: 3px solid #2e5e8e;
   box-shadow: 0 2px 6px #0000002e;
   transition: transform 0.15s ease;
 }
@@ -133,7 +154,7 @@ textarea:not(.outline-none):focus-visible,
   height: 14px;
   border-radius: 999px;
   background: #fff;
-  border: 3px solid #7d7fff;
+  border: 3px solid #2e5e8e;
   box-shadow: 0 2px 6px #0000002e;
 }
 

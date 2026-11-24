@@ -3,28 +3,20 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { homeFor, login } from "../api/auth.js";
 import KosHero from "../components/KosHero.jsx";
 import FormField, { PasswordToggle } from "../components/FormField.jsx";
-import Button from "../components/ui/Button.jsx";
-
-import userIcon from "../assets/user-icon.svg";
-import buildingIcon from "../assets/building-icon.svg";
-import alertIcon from "../assets/alert-circle.svg";
-import emailIcon from "../assets/email.svg";
-import lockIcon from "../assets/lock.svg";
-import eyeOffIcon from "../assets/eye-off.svg";
-import eyeIcon from "../assets/eye.svg";
+import { LineIcon } from "../components/Icon.jsx";
 
 const roles = {
   pencari: {
     label: "Pencari kos",
     title: "Pencari kos",
-    icon: userIcon,
-    desc: "Akses halaman pencarian kos, detail kos, pengajuan booking kos",
+    icon: "user",
+    desc: "Cari kos, lihat detail, dan booking kamar.",
   },
   pemilik: {
     label: "Pemilik kos",
     title: "Pemilik Kos",
-    icon: buildingIcon,
-    desc: "Akses halaman untuk melisting kos dan juga listing kamar",
+    icon: "home",
+    desc: "Kelola kos, kamar, dan permintaan booking.",
   },
 };
 
@@ -82,77 +74,85 @@ export default function Login() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-[1354px] flex-col-reverse bg-[#f8f9ff] px-0 py-0 min-[1100px]:my-14 min-[1100px]:min-h-[911px] min-[1100px]:flex-row min-[1100px]:px-4">
+    <main className="flex min-h-screen flex-col-reverse bg-white font-poppins text-steel-ink lg:flex-row">
       {/* Kiri: foto kamar + kartu kos */}
       <KosHero />
 
       {/* Kanan: form masuk */}
-      <section
-        aria-labelledby="login-title"
-        className="relative border-line-strong bg-white px-4 pb-10 pt-8 sm:px-[31px] sm:pt-14 min-[1100px]:w-[497px] min-[1100px]:shrink-0 min-[1100px]:border"
-      >
+      <section aria-labelledby="login-title" className="relative flex flex-1 items-start justify-center px-5 py-10 sm:px-10 lg:max-w-[52%] lg:pb-12 lg:pt-[18vh]">
         {showToast && (
           <div
             role="status"
-            className="absolute left-1/2 top-[86px] z-10 w-[215px] -translate-x-1/2 rounded-lg border-2 border-[#5b5b78] bg-white px-3 py-3 font-poppins text-xs leading-[14px] text-[#2b2b8f] shadow-[0_4px_10px_#00000026] sm:left-[148px] sm:translate-x-0"
+            className="absolute right-5 top-5 z-10 flex max-w-[300px] items-start gap-2.5 rounded-xl border border-steel-line bg-white px-3.5 py-3 text-xs shadow-steel-lg sm:right-8 sm:top-8"
           >
-            Akun Berhasil Dibuat
-            <br />
-            Silakan Login
+            <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-ok-soft text-ok">
+              <LineIcon name="check" className="h-4 w-4" />
+            </span>
+            <span>
+              <strong className="block text-[13px] font-semibold">Akun berhasil dibuat</strong>
+              <span className="text-steel-muted">Silakan masuk dengan akun barumu.</span>
+            </span>
           </div>
         )}
 
-        <h1 id="login-title" className="font-poppins text-[26px] font-semibold text-ink sm:text-[32px]">
-          Selamat Datang Kembali
-        </h1>
-        <p className="mt-3 font-inter text-base text-muted sm:text-lg">
-          Masukkan akun Anda untuk mengakses dashboard.
-        </p>
+        <div className="w-full max-w-[400px]">
+          <p className="mb-6 font-serif4 text-2xl font-bold text-steel-side lg:hidden">KeKos</p>
+          <h1 id="login-title" className="font-serif4 text-[32px] font-bold leading-tight sm:text-[36px]">
+            Selamat datang kembali
+          </h1>
+          <p className="mt-1.5 text-sm text-steel-muted">Masuk ke akunmu untuk melanjutkan.</p>
 
-        <form onSubmit={handleSubmit} noValidate className="mx-auto mt-8 w-full max-w-[340px]">
-          <fieldset className="rounded-lg bg-white p-[5px]">
-            <legend className="float-left w-full pl-[5px] pt-[5px] font-inter text-base text-ink">
-              Masuk Sebagai:
-            </legend>
-            <div className="clear-both mt-[11px] flex gap-[11px] sm:ml-[15px]">
-              {Object.entries(roles).map(([value, r]) => (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={role === value}
-                  onClick={() => {
-                    setRole(value);
-                    setError("");
-                  }}
-                  className={`relative flex h-[63px] flex-1 flex-col items-center justify-center gap-[3px] rounded-[9px] border bg-white font-inter text-base disabled:cursor-not-allowed disabled:opacity-60 sm:w-[133px] sm:flex-none ${
-                    role === value
-                      ? "border-[#1e1e1e] text-black shadow-[0px_4px_4px_#00000040]"
-                      : "border-transparent text-ink"
-                  }`}
-                >
-                  <img className="h-[27px] w-[27px]" alt="" src={r.icon} />
-                  {r.label}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          {/* Satu pesan untuk email & password: sengaja tidak menyebut kolom mana yang salah */}
+          {error && (
+            <p id="login-error" role="alert" className="mt-5 flex items-start gap-2 rounded-xl border border-[#efc9c3] bg-bad-soft px-3.5 py-3 text-sm text-bad">
+              <LineIcon name="alert" className="mt-px h-[18px] w-[18px]" />
+              {error}
+            </p>
+          )}
 
-          <div className="ml-1 mt-8 flex items-start gap-2.5 min-[1100px]:mt-[57px]">
-            <img className="mt-0.5 h-5 w-5 shrink-0" alt="" src={alertIcon} />
-            <div>
-              <p className="font-poppins font-semibold text-[15px] text-black">{roles[role].title}</p>
-              <p className="mt-1.5 font-inter text-[15px] text-muted">{roles[role].desc}</p>
-            </div>
-          </div>
+          <form onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-4">
+            <fieldset>
+              <legend className="text-[13px] font-semibold">Masuk sebagai</legend>
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                {Object.entries(roles).map(([value, r]) => {
+                  const on = role === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => {
+                        setRole(value);
+                        setError("");
+                      }}
+                      className={`relative flex flex-col items-start rounded-2xl border p-3.5 text-left transition-colors ${
+                        on ? "border-steel bg-steel-tint-2 ring-1 ring-steel" : "border-steel-line bg-white hover:border-steel"
+                      }`}
+                    >
+                      <span aria-hidden="true" className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-steel text-white" : "bg-steel-tint text-steel"}`}>
+                        <LineIcon name={r.icon} className="h-[18px] w-[18px]" />
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className={`absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full border ${on ? "border-steel bg-steel text-white" : "border-steel-dash bg-white"}`}
+                      >
+                        {on && <LineIcon name="check" className="h-3 w-3" />}
+                      </span>
+                      <span className="mt-2.5 text-sm font-semibold">{r.label}</span>
+                      <span className="mt-1 text-[11px] leading-snug text-steel-muted">{r.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
 
-          <div className="mx-auto mt-10 flex w-full max-w-[340px] flex-col gap-4 min-[1100px]:mt-14">
             <FormField
               id="login-email"
               name="email"
               type="email"
               label="Email"
-              icon={emailIcon}
-              placeholder="Masukkan email Anda"
+              icon="mail"
+              placeholder="nama@email.com"
               autoComplete="email"
               value={email}
               onChange={onType(setEmail)}
@@ -165,7 +165,7 @@ export default function Login() {
               name="password"
               type={showPassword ? "text" : "password"}
               label="Password"
-              icon={lockIcon}
+              icon="lock"
               placeholder="Masukkan password"
               autoComplete="current-password"
               value={password}
@@ -173,36 +173,32 @@ export default function Login() {
               error={fieldErrors.password}
               invalid={Boolean(error)}
               describedBy={error ? "login-error" : undefined}
-              trailing={
-                <PasswordToggle
-                  shown={showPassword}
-                  onToggle={() => setShowPassword((visible) => !visible)}
-                  eyeIcon={eyeIcon}
-                  eyeOffIcon={eyeOffIcon}
-                />
-              }
+              trailing={<PasswordToggle shown={showPassword} onToggle={() => setShowPassword((visible) => !visible)} />}
             />
 
-            {/* Satu pesan untuk email & password: sengaja tidak menyebut kolom mana yang salah */}
-            {error && (
-              <p id="login-error" role="alert" className="rounded-lg bg-danger-soft px-3 py-2 font-inter text-sm text-danger">
-                {error}
-              </p>
-            )}
-
-            <Button type="submit" size="lg" disabled={loading} className="mt-2 w-full">
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-steel text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(46,94,142,.8)] hover:bg-steel-strong disabled:opacity-60"
+            >
               {loading ? "Memproses..." : "Masuk"}
-              <span aria-hidden="true" className="text-xl leading-none">→</span>
-            </Button>
+              {!loading && <LineIcon name="arrow" className="h-4 w-4" />}
+            </button>
 
-            <p className="text-center font-inter text-base text-ink">
+            <div aria-hidden="true" className="flex items-center gap-3 text-xs text-steel-muted">
+              <span className="h-px flex-1 bg-steel-line" />
+              atau
+              <span className="h-px flex-1 bg-steel-line" />
+            </div>
+
+            <p className="text-center text-sm text-steel-body">
               Belum punya akun?{" "}
-              <Link to="/register" className="font-medium text-primary-strong underline-offset-2 hover:underline">
+              <Link to="/register" className="font-semibold text-steel underline-offset-2 hover:underline">
                 Daftar sekarang
               </Link>
             </p>
-          </div>
-        </form>
+          </form>
+        </div>
       </section>
     </main>
   );

@@ -5,20 +5,12 @@ import Navbar from "../components/Navbar.jsx";
 import KosCard from "../components/KosCard.jsx";
 import KosMap from "../components/KosMap.jsx";
 import TextRotate from "../components/ui/TextRotate.jsx";
-import InteractiveHoverButton from "../components/ui/InteractiveHoverButton.jsx";
+import { LineIcon } from "../components/Icon.jsx";
 import { useApi } from "../hooks/useApi.js";
-import { useScrollEffects } from "../hooks/useScrollEffects.js";
 import { CAMPUS, RADIUS_METERS, distanceMeters, hasLocation } from "../lib/maps.js";
 import { rupiah } from "../lib/format.js";
 
 import heroImg from "../assets/sunlit-mediterranean-hilltop-town-and-church-1.png";
-// Foto yang sama tanpa langit (hanya gedung), ditumpuk di atas garis supaya garis lewat di belakang rumah
-import heroBuildingsImg from "../assets/hero-gedung.webp";
-import dripImg from "../assets/black-dripping-paint-silhouette-1.png";
-import distanceIcon from "../assets/distance-rounded.svg";
-import zoomIcon from "../assets/sharp-zoom-out-map.svg";
-import searchIcon from "../assets/search.svg";
-import checkIcon from "../assets/check.svg";
 
 const TYPES = [
   { value: "", label: "Semua" },
@@ -37,7 +29,15 @@ const FACILITIES = [
   { label: "Parkir Mobil", value: "Parkir Mobil" },
 ];
 
-// Kata yang bergantian di judul hero: "Temukan kos yang ___ untukmu."
+// Pilihan budget cepat di kotak pencarian hero (batas atas harga per bulan)
+const BUDGETS = [
+  { value: 1000000, label: "Sampai Rp1 jt" },
+  { value: 1500000, label: "Sampai Rp1,5 jt" },
+  { value: 2000000, label: "Sampai Rp2 jt" },
+  { value: 3000000, label: "Semua harga" },
+];
+
+// Kata yang bergantian di judul hero: "Temukan kos yang ___ untukmu"
 const HERO_WORDS = ["cocok", "nyaman", "aman", "terjangkau"];
 
 const MIN_PRICE = 500000;
@@ -53,6 +53,8 @@ function buildQuery({ type, maxPrice, facilities, q }) {
   if (q.trim()) params.set("q", q.trim());
   return `/kos?${params}`;
 }
+
+const labelClass = "text-[11px] font-semibold uppercase tracking-[.06em] text-steel-muted";
 
 export default function Dashboard({ notifOpenInitially = false }) {
   const [type, setType] = useState("");
@@ -72,7 +74,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
       opener?.focus();
     };
   }, [mapOpen]);
-  // Filter baru dipakai setelah tombol "Cari" diklik; pencarian teks langsung (dengan jeda)
+  // Filter baru dipakai setelah tombol "Cari kos" / "Terapkan filter" diklik; pencarian teks langsung (dengan jeda)
   const [applied, setApplied] = useState({ type: "", maxPrice: MAX_PRICE, facilities: [] });
   const [q, setQ] = useState("");
 
@@ -101,111 +103,168 @@ export default function Dashboard({ notifOpenInitially = false }) {
     () => (allKos.data || []).filter((kos) => hasLocation(kos) && distanceMeters(CAMPUS, kos) <= RADIUS_METERS).length,
     [allKos.data]
   );
+  // Rata-rata rating dari kos yang sudah punya ulasan
+  const avgRating = useMemo(() => {
+    const rated = (allKos.data || []).filter((k) => k.reviews > 0);
+    return rated.length ? rated.reduce((n, k) => n + k.rating, 0) / rated.length : null;
+  }, [allKos.data]);
 
   const toggleFacility = (value) =>
     setFacilities((list) => (list.includes(value) ? list.filter((f) => f !== value) : [...list, value]));
 
-  const pageRef = useRef(null);
-  useScrollEffects(pageRef);
-
   const fill = ((maxPrice - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * 100;
+  const radiusText = `${String(RADIUS_METERS / 1000).replace(".", ",")} km`;
 
   return (
-    <main ref={pageRef} className="overflow-x-clip bg-[#f4f4f4]">
-      {/* Bar tipis di atas yang terisi sesuai posisi scroll */}
-      <div data-scroll-progress aria-hidden="true" className="fixed inset-x-0 top-0 z-50 h-1 origin-left scale-x-0 bg-[#7d7fff]" />
-      {/* ---------- Hero ---------- */}
-      <section className="relative h-[min(820px,56vw)] min-h-[560px] overflow-hidden">
-        {/* Urutan lapisan (skala & posisi sama): foto → garis zig-zag putih → foto gedung tanpa langit.
-            Jadi garis berjalan di langit tapi lewat di BELAKANG rumah & gereja, termasuk saat parallax.
-            data-parallax-anchor="top" = foto baru bergeser setelah halaman di-scroll. */}
-        <div data-parallax="0.4" data-parallax-anchor="top" className="absolute inset-0">
-          <img src={heroImg} alt="" className="h-full w-full object-cover" />
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 1440 1024"
-            preserveAspectRatio="xMidYMid slice"
-            className="pointer-events-none absolute inset-0 hidden h-full w-full sm:block"
-          >
-            <polyline
-              className="kekos-draw"
-              pathLength="1"
-              points="0,540 270,450 455,548 629,379 739,488 965,264 1189,488 1445,236"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="7"
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
+    <div className="min-h-screen overflow-x-clip bg-steel-bg font-poppins text-steel-ink">
+      <Navbar notifOpenInitially={notifOpenInitially} />
+
+      <main>
+        {/* ---------- Hero: foto kota + lapisan biru redup + garis zigzag ---------- */}
+        <section className="relative overflow-hidden">
+          <img src={heroImg} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(100deg,rgba(29,58,92,.94)_0%,rgba(41,82,124,.86)_45%,rgba(85,130,173,.55)_100%)]" />
+          <svg aria-hidden="true" viewBox="0 0 400 160" preserveAspectRatio="none" className="pointer-events-none absolute right-0 top-10 hidden h-[45%] w-[50%] opacity-20 md:block">
+            <polyline points="0,130 55,60 110,115 180,25 240,95 310,40 400,120" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
           </svg>
-          <img src={heroBuildingsImg} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
-        </div>
-        <Navbar notifOpenInitially={notifOpenInitially} overlay />
-        <div data-scroll-fade className="relative z-10 px-6 pt-[130px] sm:pl-[16%] sm:pt-[170px]">
-          <h1 data-reveal="left" className="font-poppins text-[34px] font-bold leading-tight text-white sm:text-[48px]">Halo, Sobat KeKos!</h1>
-          <p data-reveal="left" style={{ "--reveal-delay": "120ms" }} className="font-poppins text-[22px] text-white sm:text-[32px]">
-            Temukan kos yang{" "}
-            <TextRotate texts={HERO_WORDS} className="rounded-lg bg-[#7d7fff] px-2 font-semibold" /> untukmu.
-          </p>
-          <p data-reveal="left" style={{ "--reveal-delay": "240ms" }} className="font-poppins text-base text-white sm:text-xl">Nyaman, dekat kampus, dan sesuai budget.</p>
-          <div data-reveal="up" style={{ "--reveal-delay": "400ms" }} className="mt-4">
-            <InteractiveHoverButton
-              as="a"
-              href="#cari-kos"
-              className="border-white px-5 py-1.5 font-poppins text-[13px] shadow-[0_4px_4px_#00000040]"
-            >
-              Cari Kos!
-            </InteractiveHoverButton>
-          </div>
-        </div>
-      </section>
 
-      {/* ---------- Panel pencarian (menumpuk di bawah hero, seperti widget pencarian Traveloka) ---------- */}
-      <section id="cari-kos" aria-label="Cari kos" className="relative z-20 -mt-28 scroll-mt-6 px-4 sm:-mt-36">
-        <form
-          onSubmit={runSearch}
-          className="mx-auto max-w-[1100px] rounded-2xl border border-[#e4e4ea] bg-white p-5 shadow-[0_16px_40px_#00000026] sm:p-6"
-        >
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="flex h-[52px] flex-1 items-center gap-3 rounded-xl border border-[#dcdce2] bg-white px-4 transition-colors focus-within:border-[#7d7fff] sm:h-[56px]">
-              <img src={searchIcon} alt="" className="h-6 w-6" />
-              <span className="sr-only">Cari kos</span>
-              <input
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari nama kos atau daerah dekat kampus"
-                className="min-w-0 flex-1 bg-transparent font-poppins text-base text-black outline-none placeholder:text-[#555] sm:text-lg"
-              />
-            </label>
-            <motion.button
-              type="submit"
-              whileTap={{ scale: 0.97 }}
-              className="h-[52px] rounded-xl bg-black px-8 font-poppins text-base font-semibold text-white hover:bg-[#222] sm:h-[56px]"
-            >
-              Cari
-            </motion.button>
-          </div>
+          <div className="relative mx-auto max-w-[1240px] px-4 pb-12 pt-12 text-white sm:px-6 sm:pt-16">
+            <p className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs">
+              <LineIcon name="check" className="h-3.5 w-3.5" />
+              Kos terverifikasi di sekitar kampus
+            </p>
+            <h1 className="mt-5 max-w-[640px] font-serif4 text-[38px] font-bold leading-[1.1] sm:text-[54px]">
+              Temukan kos yang <TextRotate texts={HERO_WORDS} className="text-[#cfe0f2]" /> untukmu
+            </h1>
+            <p className="mt-4 max-w-[520px] text-[15px] text-white/85">
+              Nyaman, dekat kampus, dan sesuai budget. Bandingkan harga, fasilitas, dan lokasi dalam satu tempat.
+            </p>
 
-          <div className="mt-6 flex flex-col gap-6 md:flex-row md:justify-between md:gap-10">
-            <div className="md:w-[460px]">
-              <p className="font-inter text-xs font-semibold tracking-wider text-[#555]">TIPE KOS</p>
-              <div className="mt-3 inline-flex rounded-full bg-[#f1f1f4] p-1" role="group" aria-label="Tipe kos">
+            {/* Kotak pencarian */}
+            <form
+              id="cari-kos"
+              onSubmit={runSearch}
+              aria-label="Cari kos"
+              className="mt-8 grid scroll-mt-24 gap-1 rounded-2xl bg-white p-2 text-steel-ink shadow-[0_20px_50px_-20px_rgba(0,0,0,.5)] md:grid-cols-[1.4fr_1fr_1fr_auto] md:gap-0"
+            >
+              <label className="flex items-center gap-3 rounded-xl px-4 py-2.5 focus-within:bg-steel-tint-2 md:border-r md:border-steel-line md:rounded-none">
+                <LineIcon name="search" className="h-5 w-5 text-steel" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] text-steel-muted">Nama kos atau daerah</span>
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Mis. Ketintang"
+                    className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-steel-muted focus:placeholder:text-transparent"
+                  />
+                </span>
+              </label>
+              <label className="flex items-center gap-3 rounded-xl px-4 py-2.5 focus-within:bg-steel-tint-2 md:border-r md:border-steel-line md:rounded-none">
+                <LineIcon name="building" className="h-5 w-5 text-steel" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] text-steel-muted">Tipe kos</span>
+                  <select value={type} onChange={(e) => setType(e.target.value)} className="w-full cursor-pointer bg-transparent text-sm font-medium outline-none">
+                    {TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.value ? t.label : "Semua tipe"}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+              </label>
+              <label className="flex items-center gap-3 rounded-xl px-4 py-2.5 focus-within:bg-steel-tint-2">
+                <LineIcon name="tag" className="h-5 w-5 text-steel" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] text-steel-muted">Budget per bulan</span>
+                  <select
+                    value={BUDGETS.some((b) => b.value === maxPrice) ? maxPrice : ""}
+                    onChange={(e) => setMaxPrice(Number(e.target.value))}
+                    className="w-full cursor-pointer bg-transparent text-sm font-medium outline-none"
+                  >
+                    {!BUDGETS.some((b) => b.value === maxPrice) && <option value="">Sampai {rupiah(maxPrice, { short: true })}</option>}
+                    {BUDGETS.map((b) => (
+                      <option key={b.value} value={b.value}>
+                        {b.label}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+              </label>
+              <button type="submit" className="m-1 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-steel px-6 text-sm font-semibold text-white hover:bg-steel-strong">
+                <LineIcon name="search" className="h-4 w-4" />
+                Cari kos
+              </button>
+            </form>
+
+            <dl className="mt-8 flex flex-wrap gap-x-12 gap-y-4">
+              {[
+                [allKos.data ? allKos.data.length : "…", "kos terverifikasi"],
+                [avgRating ? avgRating.toFixed(1).replace(".", ",") : "–", "rata-rata rating"],
+                [allKos.data ? nearby : "…", `kos dalam radius ${radiusText}`],
+              ].map(([v, l]) => (
+                <div key={l} className="flex flex-col-reverse">
+                  <dt className="text-xs text-white/75">{l}</dt>
+                  <dd className="text-2xl font-semibold">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* ---------- Peta persebaran ---------- */}
+        <section id="peta" className="mx-auto max-w-[1240px] scroll-mt-20 px-4 pt-14 sm:px-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="font-serif4 text-[28px] font-bold sm:text-[34px]">Peta persebaran kos</h2>
+              <p className="mt-1 text-sm text-steel-muted">Lihat kos di sekitar kampus dan pilih yang paling dekat dengan aktivitasmu.</p>
+            </div>
+            <button
+              ref={zoomButtonRef}
+              type="button"
+              onClick={() => setMapOpen(true)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-steel-line bg-white px-4 text-sm font-semibold text-steel hover:bg-steel-tint-2"
+            >
+              <LineIcon name="pin" className="h-4 w-4" />
+              Buka peta penuh
+            </button>
+          </div>
+          <div className="relative isolate mt-5 overflow-hidden rounded-[20px] border border-steel-line bg-white shadow-steel">
+            <KosMap kos={allKos.data || []} className="aspect-[1087/440] min-h-[300px] w-full" />
+            <p className="absolute bottom-4 left-4 z-[500] flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 text-sm shadow-steel">
+              <LineIcon name="pin" className="h-4 w-4 text-steel" />
+              <span>
+                <span className="font-semibold">{allKos.data ? nearby : "…"} kos</span> ditemukan dalam radius {radiusText}
+              </span>
+            </p>
+          </div>
+        </section>
+
+        {/* ---------- Daftar kos + filter ---------- */}
+        <section id="hasil-kos" className="mx-auto max-w-[1240px] scroll-mt-20 px-4 pb-20 pt-14 sm:px-6">
+          <h2 className="font-serif4 text-[28px] font-bold sm:text-[34px]">Kos pilihan di sekitar kampus</h2>
+          <p className="mt-1 text-sm text-steel-muted">Bandingkan harga, tipe kos, fasilitas, dan jarak sebelum kamu booking.</p>
+
+          <form
+            onSubmit={runSearch}
+            aria-label="Filter kos"
+            className="mt-6 flex flex-col gap-6 rounded-2xl border border-steel-line bg-white p-5 shadow-steel lg:flex-row lg:items-end"
+          >
+            <div>
+              <p className={labelClass}>Tipe kos</p>
+              <div role="group" aria-label="Tipe kos" className="mt-2 inline-flex rounded-xl bg-[#e3e9f0] p-[3px]">
                 {TYPES.map((t) => (
                   <button
                     key={t.value}
                     type="button"
                     aria-pressed={type === t.value}
                     onClick={() => setType(t.value)}
-                    className={`relative h-8 w-[72px] rounded-full font-inter text-xs transition-colors ${
-                      type === t.value ? "font-semibold text-black" : "text-[#666] hover:text-black"
-                    }`}
+                    className={`relative min-h-9 rounded-[9px] px-3.5 text-[13px] ${type === t.value ? "font-semibold text-steel-strong" : "font-medium text-steel-body"}`}
                   >
-                    {/* Satu latar putih yang meluncur ke tombol terpilih (layoutId yang sama) */}
                     {type === t.value && (
                       <motion.span
                         layoutId="tipe-kos-aktif"
-                        className="absolute inset-0 rounded-full bg-white shadow-[0_1px_4px_#00000026]"
+                        className="absolute inset-0 rounded-[9px] bg-white shadow-[0_1px_3px_rgba(29,58,92,.15)]"
                         transition={{ type: "spring", stiffness: 500, damping: 35 }}
                       />
                     )}
@@ -213,13 +272,15 @@ export default function Dashboard({ notifOpenInitially = false }) {
                   </button>
                 ))}
               </div>
+            </div>
 
-              <div className="mt-5 flex items-center justify-between">
-                <label htmlFor="budget" className="font-inter text-xs font-semibold tracking-wider text-[#555]">
-                  BUDGET PER BULAN
+            <div className="min-w-[220px] flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="budget" className={labelClass}>
+                  Budget per bulan
                 </label>
-                <span className="font-inter text-xs font-semibold text-black">
-                  {rupiah(MIN_PRICE)} - {rupiah(maxPrice)}
+                <span className="text-xs font-semibold">
+                  {rupiah(MIN_PRICE, { short: true })} – {rupiah(maxPrice, { short: true })}
                   {maxPrice >= MAX_PRICE ? "+" : ""}
                 </span>
               </div>
@@ -231,174 +292,155 @@ export default function Dashboard({ notifOpenInitially = false }) {
                 step={100000}
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="kekos-range mt-5 w-full"
+                className="kekos-range mt-4 w-full"
                 style={{ "--fill": `${fill}%` }}
               />
-              <div className="mt-1 flex justify-between font-inter text-xs text-[#555]">
-                <span>{rupiah(MIN_PRICE)}</span>
-                <span>{rupiah(1500000)}</span>
-                <span>{rupiah(MAX_PRICE)}+</span>
-              </div>
             </div>
 
-            <div className="md:w-[420px]">
-              <p className="font-inter text-xs font-semibold tracking-wider text-[#555]">FASILITAS</p>
-              <div className="mt-3 flex flex-wrap gap-x-2.5 gap-y-3">
+            <div className="lg:max-w-[420px]">
+              <p className={labelClass}>Fasilitas</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {FACILITIES.map((f) => {
                   const on = facilities.includes(f.value);
                   return (
-                    <motion.button
+                    <button
                       key={f.value}
                       type="button"
                       aria-pressed={on}
                       onClick={() => toggleFacility(f.value)}
-                      whileTap={{ scale: 0.9 }}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3.5 font-inter text-xs transition-colors ${
-                        on
-                          ? "border-[#7d7fff] bg-[#7d7fff1a] font-medium text-[#4b4dd6]"
-                          : "border-[#dcdce2] bg-white text-[#333] hover:border-[#9a9aa5]"
+                      className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors ${
+                        on ? "border-steel bg-steel text-white" : "border-steel-line bg-white text-steel-body hover:border-steel"
                       }`}
                     >
-                      {on && (
-                        <motion.img
-                          src={checkIcon}
-                          alt=""
-                          className="h-[7px] w-[10px]"
-                          initial={{ scale: 0, rotate: -90 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                        />
-                      )}
+                      {on && <LineIcon name="check" className="h-3.5 w-3.5" />}
                       {f.label}
-                    </motion.button>
+                    </button>
                   );
                 })}
               </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 lg:flex-col lg:items-stretch">
+              <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-steel px-5 text-sm font-semibold text-white hover:bg-steel-strong">
+                <LineIcon name="search" className="h-4 w-4" />
+                Terapkan filter
+              </button>
               <AnimatePresence>
                 {isFiltered && (
                   <motion.button
                     type="button"
                     onClick={resetFilters}
-                    initial={{ opacity: 0, x: 8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 8 }}
-                    className="mt-4 rounded-full px-3 py-1 font-inter text-xs font-medium text-[#4b4dd6] hover:bg-[#7d7fff1a]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="min-h-9 rounded-xl px-3 text-xs font-semibold text-steel hover:bg-steel-tint-2"
                   >
                     Reset filter
                   </motion.button>
                 )}
               </AnimatePresence>
             </div>
-          </div>
-        </form>
-      </section>
+          </form>
 
-      {/* ---------- Hasil: grid kartu kos ---------- */}
-      <section id="hasil-kos" className="mx-auto max-w-[1360px] scroll-mt-6 px-4 pb-24 pt-14">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <h2 className="font-serif4 text-[26px] text-black sm:text-[32px]">Kos untukmu</h2>
-          <p aria-live="polite" className="font-inter text-sm text-[#555]">
+          <p aria-live="polite" className="mt-6 text-sm font-medium text-steel-body">
             {kosList.data ? `${kosList.data.length} kos ditemukan` : ""}
           </p>
-        </div>
 
-        <div className="mt-6">
-          {kosList.loading && <p className="font-roboto text-sm text-[#555]">Memuat kos...</p>}
-          {kosList.error && <p className="font-roboto text-sm text-[#c00]">{kosList.error}</p>}
-          {kosList.data?.length === 0 && (
-            <div className="flex flex-col items-start gap-3">
-              <p className="font-roboto text-sm text-[#555]">Kos tidak ditemukan. Coba ubah filter atau kata kunci.</p>
-              {(isFiltered || search) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    resetFilters();
-                    setSearch("");
-                  }}
-                  className="h-11 rounded-full border border-black px-5 font-poppins text-sm hover:bg-black hover:text-white"
-                >
-                  Reset filter &amp; pencarian
-                </button>
-              )}
+          <div className="mt-4">
+            {kosList.loading && <p className="text-sm text-steel-muted">Memuat kos...</p>}
+            {kosList.error && (
+              <p role="alert" className="rounded-xl bg-bad-soft px-3 py-2 text-sm text-bad">
+                {kosList.error}
+              </p>
+            )}
+            {kosList.data?.length === 0 && (
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-steel-line bg-white p-8 text-center">
+                <p className="text-sm text-steel-muted">Kos tidak ditemukan. Coba ubah filter atau kata kunci.</p>
+                {(isFiltered || search) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetFilters();
+                      setSearch("");
+                    }}
+                    className="min-h-11 rounded-xl border border-steel-line px-5 text-sm font-semibold text-steel hover:bg-steel-tint-2"
+                  >
+                    Reset filter &amp; pencarian
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+              {/* Saat hasil filter berubah: kartu yang hilang mengecil & memudar, sisanya meluncur ke posisi baru */}
+              <AnimatePresence mode="popLayout">
+                {kosList.data?.map((kos) => (
+                  <motion.div
+                    key={kos.id}
+                    layout
+                    initial={false}
+                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  >
+                    <KosCard kos={kos}>
+                      <div className="mt-2 grid grid-cols-2 gap-2 border-t border-[#edf1f5] pt-3">
+                        <Link
+                          to={`/kos/${kos.id}`}
+                          className="inline-flex min-h-11 items-center justify-center rounded-xl border border-steel-line text-sm font-semibold text-steel-body hover:border-steel hover:text-steel"
+                        >
+                          Detail
+                        </Link>
+                        {kos.roomsLeft > 0 ? (
+                          <Link
+                            to={`/kos/${kos.id}/booking`}
+                            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-steel text-sm font-semibold text-white hover:bg-steel-strong"
+                          >
+                            Booking cepat
+                          </Link>
+                        ) : (
+                          <span aria-disabled="true" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#c6d0db] text-sm font-semibold text-white">
+                            Penuh
+                          </span>
+                        )}
+                      </div>
+                    </KosCard>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
-          )}
-          {/* KosCard lebarnya tetap 308px, jadi kolom grid mengikuti lebar itu */}
-          <div className="grid grid-cols-[repeat(auto-fill,308px)] justify-center gap-8">
-            {/* Saat hasil filter berubah: kartu yang hilang mengecil & memudar, sisanya meluncur ke posisi baru */}
-            <AnimatePresence mode="popLayout">
-              {kosList.data?.map((kos) => (
-                <motion.div
-                  key={kos.id}
-                  layout
-                  initial={false}
-                  exit={{ opacity: 0, scale: 0.85, transition: { duration: 0.2 } }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                >
-                  <KosCard kos={kos}>
-                    <div className="mt-3 flex items-center justify-center gap-[18px]">
-                      <Link
-                        to={`/kos/${kos.id}`}
-                        className="rounded-md bg-[#2b2b2b] px-3 py-[7px] font-roboto text-sm text-white hover:bg-black"
-                      >
-                        Detail
-                      </Link>
-                      <Link
-                        to={`/kos/${kos.id}/booking`}
-                        className="w-[95px] rounded-md bg-black py-1 text-center font-roboto text-sm leading-[19px] text-white hover:bg-[#333]"
-                      >
-                        Booking
-                        <br />
-                        Cepat
-                      </Link>
-                    </div>
-                  </KosCard>
-                </motion.div>
-              ))}
-            </AnimatePresence>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* ---------- Peta persebaran ---------- */}
-      <section id="peta" className="relative bg-black pb-[140px] pt-[100px] sm:pb-[300px] sm:pt-[135px]">
-        <h2 data-reveal="up" className="text-center font-spacemono text-[30px] font-bold leading-[1.3] text-white sm:text-[40px]">
-          Peta
-          <br />
-          Persebaran Kos
-        </h2>
-        <p data-reveal="up" style={{ "--reveal-delay": "120ms" }} className="mx-auto mt-3 max-w-[689px] px-4 text-center font-serif4 text-base text-white sm:text-lg">
-          Temukan kos di sekitar kampus dengan mudah melalui peta interaktif KeKos.
-        </p>
-        <div data-reveal="zoom" className="relative z-10 mx-auto mt-12 w-[min(1087px,calc(100%-32px))] overflow-hidden rounded-[20px] bg-white">
-          <KosMap kos={allKos.data || []} className="aspect-[1087/481] min-h-[300px] w-full" />
-          <div className="flex items-center gap-3 px-4 py-4 sm:h-[100px] sm:gap-4 sm:px-6">
-            <img src={distanceIcon} alt="" className="h-10 w-10 shrink-0 invert sm:h-[60px] sm:w-[60px]" />
-            <p className="flex-1 font-poppins text-lg text-black sm:text-[32px]">
-              {allKos.data ? nearby : "…"} kos terdeteksi di sekitar radius {RADIUS_METERS / 1000}km
-            </p>
-            <button ref={zoomButtonRef} type="button" onClick={() => setMapOpen(true)} aria-label="Perbesar peta" className="flex h-11 w-11 shrink-0 items-center justify-center sm:h-auto sm:w-auto">
-              <img src={zoomIcon} alt="" className="h-9 w-9 sm:h-[53px] sm:w-[53px]" />
-            </button>
+      <footer className="bg-steel-side text-white">
+        <div className="mx-auto flex max-w-[1240px] flex-wrap justify-between gap-8 px-4 py-12 sm:px-6">
+          <div>
+            <p className="font-serif4 text-2xl font-bold">KeKos</p>
+            <p className="mt-2 max-w-[260px] text-sm text-white/75">Cari dan booking kos impian di sekitar kampus jadi lebih mudah.</p>
+            <p className="mt-6 text-xs text-white/60">© {new Date().getFullYear()} KeKos</p>
           </div>
+          <nav aria-label="Tautan bawah" className="flex gap-12 text-sm">
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold">Jelajahi</p>
+              <a href="#cari-kos" className="text-white/75 hover:text-white">Cari kos</a>
+              <a href="#peta" className="text-white/75 hover:text-white">Peta kos</a>
+              <Link to="/riwayat" className="text-white/75 hover:text-white">Riwayat kos</Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold">Pemilik</p>
+              <Link to="/" className="text-white/75 hover:text-white">Masuk sebagai pemilik</Link>
+            </div>
+          </nav>
         </div>
-        <img
-          src={dripImg}
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 w-full translate-y-[60%] select-none"
-        />
-      </section>
-      {/* Ruang untuk tetesan cat yang menjuntai ±24vw di bawah peta */}
-      <div aria-hidden="true" className="h-[max(120px,26vw)]" />
+      </footer>
 
-      {/* Latar memudar, peta membesar dari tengah; saat ditutup keduanya dibalik */}
+      {/* Peta layar penuh: latar memudar, peta membesar dari tengah */}
       <AnimatePresence>
         {mapOpen && (
           <motion.div
             role="dialog"
             aria-modal="true"
             aria-label="Peta persebaran kos"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000cc] p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(26,43,63,.7)] p-4"
             onClick={() => setMapOpen(false)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -407,7 +449,7 @@ export default function Dashboard({ notifOpenInitially = false }) {
           >
             <motion.div
               onClick={(e) => e.stopPropagation()}
-              className="h-full max-h-[860px] w-full max-w-[1400px] overflow-hidden rounded-xl"
+              className="h-full max-h-[860px] w-full max-w-[1400px] overflow-hidden rounded-2xl"
               initial={{ scale: 0.9, y: 40 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 40 }}
@@ -419,13 +461,13 @@ export default function Dashboard({ notifOpenInitially = false }) {
               type="button"
               autoFocus
               onClick={() => setMapOpen(false)}
-              className="absolute right-6 top-6 z-[1000] h-11 rounded-full bg-white px-5 font-poppins text-sm shadow"
+              className="absolute right-6 top-6 z-[1000] min-h-11 rounded-xl bg-white px-5 text-sm font-semibold text-steel shadow"
             >
               Tutup
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-    </main>
+    </div>
   );
 }

@@ -14,25 +14,25 @@ export default function AdminNotifikasi() {
   }, []);
 
   return (
-    <AdminLayout title="Notifikasi & Log" className="bg-[#ededed]">
-      <div className="mx-auto mt-6 max-w-[760px]">
-        {notif.loading && <p className="font-inter text-sm text-muted">Memuat notifikasi...</p>}
-        {notif.error && <p role="alert" className="font-inter text-sm text-danger">{notif.error}</p>}
+    <AdminLayout title="Notifikasi & Log">
+      <div className="w-full max-w-[760px]">
+        {notif.loading && <p className="font-poppins text-sm text-steel-muted">Memuat notifikasi...</p>}
+        {notif.error && <p role="alert" className="font-poppins text-sm text-bad">{notif.error}</p>}
         {notif.data && !notif.data.length && (
-          <p className="rounded-[20px] bg-white p-6 font-inter text-sm text-muted">Belum ada notifikasi.</p>
+          <p className="rounded-2xl border border-steel-line bg-white shadow-steel p-6 font-poppins text-sm text-steel-muted">Belum ada notifikasi.</p>
         )}
         {notif.data?.length > 0 && (
-          <ul className="flex flex-col divide-y divide-line rounded-[20px] bg-white px-5">
+          <ul className="flex flex-col divide-y divide-[#edf1f5] rounded-2xl border border-steel-line bg-white shadow-steel px-5">
             {notif.data.map((n) => (
               <li key={n.id} className="flex items-start justify-between gap-3 py-4">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-inter text-sm font-semibold text-ink">
-                    {!n.read && <span aria-label="Belum dibaca" className="h-2 w-2 shrink-0 rounded-full bg-[#0a84d6]" />}
+                  <p className="flex items-center gap-2 font-poppins text-sm font-semibold text-steel-ink">
+                    {!n.read && <span aria-label="Belum dibaca" className="h-2 w-2 shrink-0 rounded-full bg-steel" />}
                     {n.title}
                   </p>
-                  <p className="font-inter text-sm text-muted">{n.message}</p>
+                  <p className="font-poppins text-sm text-steel-muted">{n.message}</p>
                 </div>
-                <time dateTime={n.createdAt} className="shrink-0 font-inter text-xs text-muted">
+                <time dateTime={n.createdAt} className="shrink-0 font-poppins text-xs text-steel-muted">
                   {timeAgo(n.createdAt)}
                 </time>
               </li>

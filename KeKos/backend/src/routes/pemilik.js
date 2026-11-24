@@ -48,6 +48,9 @@ async function withTx(fn) {
 async function setFasilitas(conn, table, column, id, names) {
   await conn.query(`DELETE FROM ${table} WHERE ${column} = ?`, [id]);
   if (names.length) {
+    // Fasilitas yang diketik sendiri oleh pemilik dan belum ada di master ditambahkan dulu
+    // (nama_fasilitas unik, jadi yang sudah ada dilewati)
+    await conn.query("INSERT IGNORE INTO fasilitas (nama_fasilitas) VALUES ?", [names.map((n) => [n])]);
     await conn.query(
       `INSERT INTO ${table} (${column}, id_fasilitas) SELECT ?, id_fasilitas FROM fasilitas WHERE nama_fasilitas IN (?)`,
       [id, names]
@@ -55,7 +58,15 @@ async function setFasilitas(conn, table, column, id, names) {
   }
 }
 
-const fasilitasDari = (v) => (Array.isArray(v) ? v.map(String).filter(Boolean) : []);
+// Nama fasilitas: dirapikan spasinya, maks 50 huruf (kolom nama_fasilitas), tanpa duplikat, maks 30 item
+function fasilitasDari(v) {
+  if (!Array.isArray(v)) return [];
+  const seen = new Set();
+  return v
+    .map((n) => String(n).replace(/\s+/g, " ").trim().slice(0, 50))
+    .filter((n) => n && !seen.has(n.toLowerCase()) && seen.add(n.toLowerCase()))
+    .slice(0, 30);
+}
 const angka = (v) => (v === "" || v == null ? NaN : Number(v));
 
 function bacaKos(body) {
@@ -80,10 +91,15 @@ function bacaKamar(body) {
     jumlahKamar: angka(body.jumlahKamar),
     deskripsi: String(body.deskripsi || "").trim() || null,
     fasilitas: fasilitasDari(body.fasilitas),
+    // Opsional (hanya saat edit): jumlah kamar yang kosong, diubah pemilik kalau ada penyewa keluar
+    kamarTersedia: body.kamarTersedia === undefined || body.kamarTersedia === "" ? null : angka(body.kamarTersedia),
   };
   if (!data.tipe) return { error: "Nama tipe kamar wajib diisi" };
   if (!Number.isFinite(data.harga) || data.harga <= 0) return { error: "Harga kamar harus lebih dari 0" };
   if (!Number.isInteger(data.jumlahKamar) || data.jumlahKamar < 1) return { error: "Jumlah kamar minimal 1" };
+  if (data.kamarTersedia !== null && (!Number.isInteger(data.kamarTersedia) || data.kamarTersedia < 0 || data.kamarTersedia > data.jumlahKamar)) {
+    return { error: `Kamar kosong harus antara 0 dan ${data.jumlahKamar}` };
+  }
   return { data };
 }
 
@@ -223,16 +239,24 @@ router.put("/kamar/:id", async (req, res) => {
   if (!kamar) return sendError(res, 404, "TIDAK_DITEMUKAN", "Tipe kamar tidak ditemukan");
   const { data, error } = bacaKamar(req.body);
   if (error) return sendError(res, 400, "DATA_TIDAK_VALID", error);
+  // Kalau pemilik mengisi "kamar kosong" (mis. ada penyewa keluar), pakai angka itu.
+  // Kalau tidak, jumlah kamar terisi dipertahankan dan sisanya dihitung ulang.
   const terisi = kamar.jumlah_kamar - kamar.jumlah_tersedia;
-  if (data.jumlahKamar < terisi) {
+  if (data.kamarTersedia === null && data.jumlahKamar < terisi) {
     return sendError(res, 400, "DATA_TIDAK_VALID", `Sudah ada ${terisi} kamar terisi, jumlah kamar minimal ${terisi}`);
   }
+  const tersedia = data.kamarTersedia ?? data.jumlahKamar - terisi;
+  // sp_terima_booking menandai tipe "penuh" saat sisa 0; kalau kamar kosong lagi, buka kembali.
+  // Kalau sisa jadi 0, tandai penuh. Selain itu status pilihan pemilik (saklar) dipertahankan.
+  let status = kamar.status_ketersediaan;
+  if (tersedia === 0) status = "penuh";
+  else if (kamar.jumlah_tersedia === 0) status = "tersedia";
   try {
     await withTx(async (conn) => {
       await conn.query(
-        `UPDATE tipe_kamar SET nama_tipe = ?, harga = ?, jumlah_kamar = ?, jumlah_tersedia = ?, deskripsi = ?
+        `UPDATE tipe_kamar SET nama_tipe = ?, harga = ?, jumlah_kamar = ?, jumlah_tersedia = ?, status_ketersediaan = ?, deskripsi = ?
          WHERE id_tipe_kamar = ?`,
-        [data.tipe, data.harga, data.jumlahKamar, data.jumlahKamar - terisi, data.deskripsi, req.params.id]
+        [data.tipe, data.harga, data.jumlahKamar, tersedia, status, data.deskripsi, req.params.id]
       );
       await setFasilitas(conn, "tipe_kamar_fasilitas", "id_tipe_kamar", req.params.id, data.fasilitas);
       await conn.query("CALL sp_perbarui_terakhir_diperbarui(?)", [kamar.id_kos]);
@@ -256,7 +280,7 @@ router.patch("/kamar/:id/status", async (req, res) => {
 // GET /api/pemilik/booking  booking masuk ke kos milik sendiri (terbaru dulu)
 router.get("/booking", async (req, res) => {
   const [rows] = await pool.query(
-    `SELECT b.id_booking, b.status_booking, b.tanggal_booking, p.nama AS pencari_nama,
+    `SELECT b.id_booking, b.status_booking, b.tanggal_booking, b.tanggal_masuk, b.durasi_sewa, p.nama AS pencari_nama,
             t.nama_tipe, k.id_kos, k.nama_kos
      FROM booking b
      JOIN tipe_kamar t ON t.id_tipe_kamar = b.id_tipe_kamar
@@ -274,6 +298,8 @@ router.get("/booking", async (req, res) => {
     roomType: b.nama_tipe,
     kosId: b.id_kos,
     kosName: b.nama_kos,
+    moveInDate: b.tanggal_masuk,
+    duration: b.durasi_sewa,
   })));
 });
 
@@ -284,9 +310,12 @@ const ERROR_PROSEDUR = {
 };
 
 // PATCH /api/pemilik/booking/:id  { aksi: "terima" | "tolak" }  lewat sp_terima_booking / sp_tolak_booking
+// Saat menolak, pemilik wajib menulis alasan (maks 255 huruf); alasan dikirim ke pencari lewat notifikasi.
 router.patch("/booking/:id", async (req, res) => {
   const { aksi } = req.body;
   if (!["terima", "tolak"].includes(aksi)) return sendError(res, 400, "DATA_TIDAK_VALID", "Aksi tidak valid");
+  const alasan = String(req.body.alasan || "").replace(/\s+/g, " ").trim().slice(0, 255);
+  if (aksi === "tolak" && !alasan) return sendError(res, 400, "DATA_TIDAK_VALID", "Tulis alasan penolakan");
   const [rows] = await pool.query(
     `SELECT 1 FROM booking b JOIN tipe_kamar t ON t.id_tipe_kamar = b.id_tipe_kamar
      JOIN kos k ON k.id_kos = t.id_kos WHERE b.id_booking = ? AND k.id_pemilik = ?`,
@@ -295,6 +324,14 @@ router.patch("/booking/:id", async (req, res) => {
   if (!rows.length) return sendError(res, 404, "TIDAK_DITEMUKAN", "Booking tidak ditemukan");
   try {
     await pool.query(`CALL ${aksi === "terima" ? "sp_terima_booking" : "sp_tolak_booking"}(?)`, [req.params.id]);
+    if (aksi === "tolak") {
+      // sp_tolak_booking sudah membuat notifikasi "Booking ditolak oleh pemilik kos"; tambahkan alasannya
+      await pool.query(
+        `UPDATE notifikasi SET pesan = CONCAT('Booking ditolak oleh pemilik kos. Alasan: ', ?)
+         WHERE id_booking = ? AND jenis_notifikasi = 'booking_ditolak'`,
+        [alasan, req.params.id]
+      );
+    }
     res.json({ status: aksi === "terima" ? "diterima" : "ditolak" });
   } catch (err) {
     const mapped = ERROR_PROSEDUR[err.sqlMessage];

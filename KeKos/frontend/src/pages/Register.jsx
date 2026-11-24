@@ -3,14 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { register } from "../api/auth.js";
 import KosHero from "../components/KosHero.jsx";
 import FormField, { PasswordToggle } from "../components/FormField.jsx";
-import Button from "../components/ui/Button.jsx";
-
-import userAddIcon from "../assets/group.svg";
-import emailIcon from "../assets/email.svg";
-import phoneIcon from "../assets/telephone.svg";
-import lockIcon from "../assets/lock.svg";
-import eyeOffIcon from "../assets/eye-off.svg";
-import eyeIcon from "../assets/eye.svg";
+import { LineIcon } from "../components/Icon.jsx";
 
 const FIELDS = ["nama", "email", "telepon", "password", "konfirmasi"];
 
@@ -95,120 +88,113 @@ export default function Register() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-[1354px] flex-col-reverse bg-[#f8f9ff] px-0 py-0 min-[1100px]:my-14 min-[1100px]:min-h-[911px] min-[1100px]:flex-row min-[1100px]:px-4">
+    <main className="flex min-h-screen flex-col-reverse bg-white font-poppins text-steel-ink lg:flex-row">
       {/* Kiri: foto kamar + kartu kos */}
-      <KosHero showTagline={false} />
+      <KosHero />
 
       {/* Kanan: form buat akun */}
-      <section
-        aria-labelledby="register-title"
-        className="border-line-strong bg-white px-4 pb-10 pt-8 sm:px-[33px] sm:pt-[62px] min-[1100px]:w-[497px] min-[1100px]:shrink-0 min-[1100px]:border"
-      >
-        <h1 id="register-title" className="font-poppins text-[26px] font-semibold text-ink sm:text-[32px]">
-          Buat Akun Baru
-        </h1>
-        <p className="mt-3 max-w-[437px] font-inter text-base text-muted sm:text-lg">
-          Buat akun Anda untuk bisa mencari dan membooking kos yang Anda inginkan
-        </p>
-
-        <form ref={formRef} onSubmit={handleSubmit} noValidate className="mx-auto mt-10 flex w-full max-w-[340px] flex-col gap-4">
-          <p className="font-inter text-xs text-muted">Semua kolom wajib diisi.</p>
-          <FormField
-            id="daftar-nama"
-            name="nama"
-            label="Nama Lengkap"
-            icon={userAddIcon}
-            placeholder="Nama lengkap Anda"
-            autoComplete="name"
-            value={form.nama}
-            onChange={onType}
-            error={errors.nama}
-          />
-          <FormField
-            id="daftar-email"
-            name="email"
-            type="email"
-            label="Email"
-            icon={emailIcon}
-            placeholder="Masukkan email Anda"
-            autoComplete="email"
-            value={form.email}
-            onChange={onType}
-            helper="Gunakan huruf kecil semua."
-            error={errors.email}
-          />
-          <FormField
-            id="daftar-telepon"
-            name="telepon"
-            type="tel"
-            inputMode="tel"
-            label="Nomor Telepon"
-            icon={phoneIcon}
-            placeholder="Masukkan nomor telepon Anda"
-            autoComplete="tel"
-            value={form.telepon}
-            onChange={onType}
-            error={errors.telepon}
-          />
-          <FormField
-            id="daftar-password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            label="Password"
-            icon={lockIcon}
-            placeholder="Minimal 6 karakter"
-            autoComplete="new-password"
-            value={form.password}
-            onChange={onType}
-            helper="Minimal 6 karakter."
-            error={errors.password}
-            trailing={
-              <PasswordToggle
-                shown={showPassword}
-                onToggle={() => setShowPassword((v) => !v)}
-                eyeIcon={eyeIcon}
-                eyeOffIcon={eyeOffIcon}
-              />
-            }
-          />
-          <FormField
-            id="daftar-konfirmasi"
-            name="konfirmasi"
-            type={showKonfirmasi ? "text" : "password"}
-            label="Konfirmasi Password"
-            icon={lockIcon}
-            placeholder="Ketik ulang password"
-            autoComplete="new-password"
-            value={form.konfirmasi}
-            onChange={onType}
-            error={errors.konfirmasi}
-            trailing={
-              <PasswordToggle
-                shown={showKonfirmasi}
-                onToggle={() => setShowKonfirmasi((v) => !v)}
-                eyeIcon={eyeIcon}
-                eyeOffIcon={eyeOffIcon}
-              />
-            }
-          />
-
-          {formError && (
-            <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 font-inter text-sm text-danger">
-              {formError}
-            </p>
-          )}
-
-          <Button type="submit" size="lg" disabled={loading} className="mt-2 w-full">
-            {loading ? "Memproses..." : "Buat Akun"}
-          </Button>
-
-          <p className="text-center font-inter text-base text-ink">
-            Sudah punya akun?{" "}
-            <Link to="/" className="font-medium text-primary-strong underline-offset-2 hover:underline">
-              Login sekarang
-            </Link>
+      <section aria-labelledby="register-title" className="flex flex-1 items-start justify-center px-5 py-10 sm:px-10 lg:max-w-[52%] lg:pb-12 lg:pt-[12vh]">
+        <div className="w-full max-w-[420px]">
+          <p className="mb-6 font-serif4 text-2xl font-bold text-steel-side lg:hidden">KeKos</p>
+          <h1 id="register-title" className="font-serif4 text-[32px] font-bold leading-tight sm:text-[36px]">
+            Buat akun baru
+          </h1>
+          <p className="mt-1.5 text-sm text-steel-muted">
+            Satu akun untuk mencari kos atau mendaftarkan kos milikmu. Peran dipilih saat masuk.
           </p>
-        </form>
+
+          <form ref={formRef} onSubmit={handleSubmit} noValidate className="mt-6 flex flex-col gap-4">
+            <FormField
+              id="daftar-nama"
+              name="nama"
+              label="Nama lengkap"
+              icon="user"
+              placeholder="Masukkan nama lengkap"
+              autoComplete="name"
+              value={form.nama}
+              onChange={onType}
+              error={errors.nama}
+            />
+            <FormField
+              id="daftar-email"
+              name="email"
+              type="email"
+              label="Email"
+              icon="mail"
+              placeholder="nama@email.com"
+              autoComplete="email"
+              value={form.email}
+              onChange={onType}
+              helper="Gunakan huruf kecil semua."
+              error={errors.email}
+            />
+            <FormField
+              id="daftar-telepon"
+              name="telepon"
+              type="tel"
+              inputMode="tel"
+              label="Nomor telepon"
+              icon="phone"
+              placeholder="08xx xxxx xxxx"
+              autoComplete="tel"
+              value={form.telepon}
+              onChange={onType}
+              helper="Dipakai pemilik/pencari untuk menghubungi lewat WhatsApp."
+              error={errors.telepon}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                id="daftar-password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                label="Password"
+                icon="lock"
+                placeholder="6+ karakter"
+                autoComplete="new-password"
+                value={form.password}
+                onChange={onType}
+                error={errors.password}
+                trailing={<PasswordToggle shown={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
+              />
+              <FormField
+                id="daftar-konfirmasi"
+                name="konfirmasi"
+                type={showKonfirmasi ? "text" : "password"}
+                label="Konfirmasi password"
+                icon="lock"
+                placeholder="Ketik ulang"
+                autoComplete="new-password"
+                value={form.konfirmasi}
+                onChange={onType}
+                error={errors.konfirmasi}
+                trailing={<PasswordToggle shown={showKonfirmasi} onToggle={() => setShowKonfirmasi((v) => !v)} />}
+              />
+            </div>
+
+            {formError && (
+              <p role="alert" className="flex items-start gap-2 rounded-xl border border-[#efc9c3] bg-bad-soft px-3.5 py-3 text-sm text-bad">
+                <LineIcon name="alert" className="mt-px h-[18px] w-[18px]" />
+                {formError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-steel text-sm font-semibold text-white shadow-[0_10px_24px_-12px_rgba(46,94,142,.8)] hover:bg-steel-strong disabled:opacity-60"
+            >
+              {loading ? "Memproses..." : "Buat akun"}
+              {!loading && <LineIcon name="arrow" className="h-4 w-4" />}
+            </button>
+
+            <p className="text-center text-sm text-steel-body">
+              Sudah punya akun?{" "}
+              <Link to="/" className="font-semibold text-steel underline-offset-2 hover:underline">
+                Masuk sekarang
+              </Link>
+            </p>
+          </form>
+        </div>
       </section>
     </main>
   );

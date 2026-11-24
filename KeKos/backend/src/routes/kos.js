@@ -34,6 +34,31 @@ router.get("/", async (req, res) => {
   res.json(rows.map(toKos));
 });
 
+// ---------- Favorit ("Simpan") pencari kos ----------
+// GET /api/kos/favorit  kos terverifikasi yang disimpan pencari yang sedang login (terbaru dulu)
+router.get("/favorit", requireAuth, requirePeran("pencariKos"), async (req, res) => {
+  const [rows] = await pool.query(
+    `${KOS_SELECT} JOIN favorit fv ON fv.id_kos = k.id_kos AND fv.id_pencari_kos = ?
+     WHERE k.status_verifikasi = 'terverifikasi' ORDER BY fv.waktu_simpan DESC`,
+    [req.user.id]
+  );
+  res.json(rows.map(toKos));
+});
+
+// POST /api/kos/:id/favorit  simpan kos (mengulang tidak membuat data ganda)
+router.post("/:id/favorit", requireAuth, requirePeran("pencariKos"), async (req, res) => {
+  const [kos] = await pool.query("SELECT id_kos FROM kos WHERE id_kos = ? AND status_verifikasi = 'terverifikasi'", [req.params.id]);
+  if (!kos[0]) return sendError(res, 404, "TIDAK_DITEMUKAN", "Kos tidak ditemukan");
+  await pool.query("INSERT IGNORE INTO favorit (id_pencari_kos, id_kos) VALUES (?, ?)", [req.user.id, req.params.id]);
+  res.status(201).json({ saved: true });
+});
+
+// DELETE /api/kos/:id/favorit  hapus dari simpanan
+router.delete("/:id/favorit", requireAuth, requirePeran("pencariKos"), async (req, res) => {
+  await pool.query("DELETE FROM favorit WHERE id_pencari_kos = ? AND id_kos = ?", [req.user.id, req.params.id]);
+  res.json({ saved: false });
+});
+
 // GET /api/kos/:id  detail kos + tipe kamar + ulasan
 router.get("/:id", async (req, res) => {
   const [rows] = await pool.query(`${KOS_SELECT} WHERE k.id_kos = ? AND k.status_verifikasi = 'terverifikasi'`, [req.params.id]);

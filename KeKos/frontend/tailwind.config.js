@@ -25,6 +25,28 @@ export default {
         success: { DEFAULT: "var(--color-success)", soft: "var(--color-success-soft)" },
         badge: { DEFAULT: "var(--color-badge)", soft: "var(--color-badge-soft)" },
         star: "var(--color-star)",
+        // Palet redesign 2026 (biru baja redup) untuk panel pemilik kos & admin
+        steel: {
+          side: "var(--steel-side)",
+          "side-2": "var(--steel-side-2)",
+          DEFAULT: "var(--steel)",
+          strong: "var(--steel-strong)",
+          tint: "var(--steel-tint)",
+          "tint-2": "var(--steel-tint-2)",
+          bg: "var(--steel-bg)",
+          line: "var(--steel-line)",
+          ink: "var(--steel-ink)",
+          body: "var(--steel-body)",
+          muted: "var(--steel-muted)",
+          dash: "var(--steel-dash)",
+        },
+        amber: { DEFAULT: "var(--amber)", soft: "var(--amber-soft)", ink: "var(--amber-ink)" },
+        ok: { DEFAULT: "var(--ok)", soft: "var(--ok-soft)" },
+        bad: { DEFAULT: "var(--bad)", soft: "var(--bad-soft)" },
+      },
+      boxShadow: {
+        steel: "0 1px 2px rgba(29,58,92,.06), 0 8px 24px -12px rgba(29,58,92,.18)",
+        "steel-lg": "0 2px 4px rgba(29,58,92,.06), 0 16px 30px -14px rgba(29,58,92,.3)",
       },
       // Dua font saja: Poppins untuk judul, Inter untuk isi
       fontFamily: {

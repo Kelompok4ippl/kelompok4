@@ -4,80 +4,56 @@ import { imageUrl, rupiah } from "../lib/format.js";
 import heroBg from "../assets/moody-blue-twilight-bedroom-office-1.png";
 
 const PropertyCard = ({ kos }) => (
-  <article className="relative flex w-[308px] shrink-0 flex-col gap-[3px] rounded-[15px] bg-white px-2 pb-3.5 pt-2 text-ink shadow-[0px_15px_18px_#00000022]">
-    <img
-      draggable={false}
-      className="aspect-[1.79] w-full rounded-lg object-cover"
-      alt={kos.name}
-      src={imageUrl(kos.image)}
-    />
-    <div className="flex items-start justify-between gap-2 px-1 pt-2">
-      <h3 className="font-inter text-base">{kos.name}</h3>
-      <p className="whitespace-nowrap font-inter text-[13px]">
+  <article className="flex w-[220px] shrink-0 items-center gap-2.5 rounded-xl bg-white p-2 pr-3 font-poppins text-steel-ink shadow-[0_10px_24px_-12px_rgba(0,0,0,.45)]">
+    <img draggable={false} className="h-12 w-12 shrink-0 rounded-lg object-cover" alt="" src={imageUrl(kos.image)} />
+    <div className="min-w-0">
+      <h3 className="truncate text-[13px] font-semibold">{kos.name}</h3>
+      <p className="text-[12px] font-semibold">
+        {kos.price ? rupiah(kos.price) : "Harga belum diatur"}
+        {kos.price ? <span className="font-normal text-steel-muted"> /bln</span> : null}
+      </p>
+      <p className="text-[11px] text-steel-muted">
         {kos.reviews > 0 ? (
           <>
-            {kos.rating.toFixed(1)} <span className="text-star">★</span>{" "}
-            <span className="text-muted">({kos.reviews})</span>
+            <span className="text-amber">★</span> {kos.rating.toFixed(1).replace(".", ",")} ({kos.reviews})
           </>
         ) : (
-          <span className="text-muted">Belum ada ulasan</span>
+          "Belum ada ulasan"
         )}
       </p>
     </div>
-    <p className="px-1 font-inter text-base">
-      {kos.price ? `Mulai ${rupiah(kos.price, { short: true })}/bln` : "Harga belum diatur"}
-    </p>
-    <ul className="flex flex-wrap gap-3 px-1 pt-[7px] font-inter text-sm">
-      {kos.facilities.map((facility) => (
-        <li key={facility}>{facility}</li>
-      ))}
-    </ul>
-    <span className="absolute right-3 top-[138px] rounded-lg bg-badge-soft px-[7px] py-1 font-inter text-[13px] text-badge">
-      {kos.roomsLeft > 0 ? `Sisa ${kos.roomsLeft} Kamar!` : "Penuh"}
-    </span>
   </article>
 );
 
-// Bagian kiri halaman login/daftar (versi Tailwind): foto kamar, judul kaca, dan kartu kos.
-// showTagline: tampilkan kalimat "Temukan kos favorit..." di bawah judul (halaman login punya, register tidak).
+// Panel kiri halaman login/daftar: foto kamar dengan lapisan biru, judul, paragraf, dan kartu kos terverifikasi.
+// showTagline: tampilkan paragraf penjelasan di bawah judul.
 export default function KosHero({ showTagline = true }) {
-  const sliderRef = useAutoSlide(40);
+  const sliderRef = useAutoSlide(30);
   // FR-02: preview kos terverifikasi dari database; kalau belum ada data, deretan kartu disembunyikan
   const preview = useApi("/preview-kos");
   const kosList = preview.data || [];
 
   return (
-    <section
-      aria-label="Informasi kos"
-      className="relative min-w-0 flex-1 overflow-hidden bg-[#0e1c51] pb-10 pt-[62px] text-white min-[1100px]:max-w-[857px] min-[1100px]:rounded-l-[11px]"
-    >
+    <section aria-label="Tentang KeKos" className="relative flex min-w-0 flex-1 flex-col overflow-hidden px-6 pb-10 pt-10 text-white sm:px-10 lg:min-h-screen lg:pt-[18vh]">
       <img className="absolute inset-0 h-full w-full object-cover" alt="" src={heroBg} />
-      <div className="relative mx-auto flex min-h-[180px] w-[min(534px,calc(100%-32px))] items-center justify-center rounded-[25px] bg-[#d9d9d933] px-1.5 py-6 backdrop-blur-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.40),inset_1px_0_0_rgba(255,255,255,0.32),inset_0_-1px_1px_rgba(0,0,0,0.13),inset_-1px_0_1px_rgba(0,0,0,0.11)]">
-        <h2 className="text-center font-inter text-[28px] leading-[34px] tracking-[-0.3px] sm:text-[40px] sm:leading-[46.4px]">
-          Cari &amp; Kelola Hunian Impian
-          <br />
-          Jadi Lebih Mudah.
-        </h2>
+      <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(29,58,92,.8)_0%,rgba(36,74,113,.74)_55%,rgba(29,58,92,.86)_100%)]" />
+      <div className="relative">
+        <h2 className="max-w-[480px] font-serif4 text-[30px] font-bold leading-[1.15] sm:text-[40px]">Cari &amp; kelola hunian impian jadi lebih mudah.</h2>
+        {showTagline && (
+          <p className="mt-4 max-w-[440px] font-poppins text-sm leading-relaxed text-[#d6e1ec]">
+            Bandingkan harga, fasilitas, dan lokasi kos dalam satu tempat. Pemilik kos juga bisa mengelola kamar dan booking dengan mudah.
+          </p>
+        )}
       </div>
-      {showTagline && (
-        <p className="relative mx-auto mt-[18px] w-[min(545px,calc(100%-32px))] pl-3 font-inter text-lg leading-[21px]">
-          Temukan kos favorit atau kelola properti Anda dalam
-          <br />
-          satu platform cerdas.
-        </p>
-      )}
-      {/* Kartu kos bergeser ke kanan sendiri dan bisa digeser manual (lihat hooks/useAutoSlide.js).
+
+      {/* Kartu kos bergeser sendiri dan bisa digeser manual (lihat hooks/useAutoSlide.js).
           Daftar kartu ditulis 2x supaya putarannya menyambung tanpa jeda. */}
       <div
         ref={sliderRef}
-        className={`relative mt-16 flex cursor-grab select-none overflow-x-auto pb-6 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-          kosList.length ? "" : "hidden"
-        } ${
-          showTagline ? "min-[1100px]:mt-40" : "min-[1100px]:mt-[206px]"
-        }`}
+        className={`relative mt-6 flex cursor-grab select-none overflow-x-auto pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${kosList.length ? "" : "hidden"}`}
       >
         {[0, 1].map((copy) => (
-          <div key={copy} className="flex shrink-0 gap-[38px] pr-[38px]" aria-hidden={copy === 1}>
+          <div key={copy} className="flex shrink-0 gap-3 pr-3" aria-hidden={copy === 1}>
             {kosList.map((kos) => (
               <PropertyCard key={kos.id} kos={kos} />
             ))}

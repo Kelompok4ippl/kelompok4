@@ -15,7 +15,12 @@ const ERROR_PROSEDUR = {
 // GET /api/booking?kos_id=4  booking milik pencari yang sedang login
 router.get("/", async (req, res) => {
   const params = [req.user.id];
-  let sql = `SELECT b.*, t.id_kos, p.no_hp AS pemilik_hp
+  // Ikut dikirim: data ringkas kos & kamar (untuk halaman Riwayat Kos) dan rating terakhir pencari di kos itu
+  let sql = `SELECT b.*, t.id_kos, t.nama_tipe, t.harga, k.nama_kos, k.alamat, k.jenis_kos,
+                    p.no_hp AS pemilik_hp, p.nama AS pemilik_nama,
+                    (SELECT f.file_foto FROM foto_kos f WHERE f.id_kos = k.id_kos ORDER BY f.id_foto LIMIT 1) AS foto,
+                    (SELECT r.nilai_rating FROM rating r WHERE r.id_kos = k.id_kos AND r.id_pencari_kos = b.id_pencari_kos
+                     ORDER BY r.id_rating DESC LIMIT 1) AS rating_saya
              FROM booking b
              JOIN tipe_kamar t ON t.id_tipe_kamar = b.id_tipe_kamar
              JOIN kos k ON k.id_kos = t.id_kos
@@ -34,6 +39,16 @@ router.get("/", async (req, res) => {
     // Nomor WhatsApp pemilik baru dibuka setelah booking diterima (pembayaran lewat WhatsApp)
     ownerPhone: b.status_booking === "diterima" ? b.pemilik_hp : null,
     createdAt: b.tanggal_booking,
+    kosName: b.nama_kos,
+    address: b.alamat,
+    kosType: b.jenis_kos,
+    roomType: b.nama_tipe,
+    price: Number(b.harga),
+    image: b.foto || null,
+    ownerName: b.pemilik_nama,
+    myRating: b.rating_saya == null ? null : Number(b.rating_saya),
+    moveInDate: b.tanggal_masuk,
+    duration: b.durasi_sewa,
   })));
 });
 
@@ -42,6 +57,21 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   const idTipe = Number(req.body.kamar_id ?? req.body.id_tipe_kamar);
   if (!Number.isInteger(idTipe)) return sendError(res, 400, "DATA_TIDAK_VALID", "Pilih tipe kamar dulu");
+
+  // Tanggal masuk (YYYY-MM-DD, mulai hari ini sampai 6 bulan ke depan) dan durasi sewa 1-12 bulan
+  const tanggalMasuk = String(req.body.tanggal_masuk || "");
+  const durasi = Number(req.body.durasi_bulan);
+  const hariIni = new Date();
+  hariIni.setHours(0, 0, 0, 0);
+  const batas = new Date(hariIni);
+  batas.setMonth(batas.getMonth() + 6);
+  const masuk = /^\d{4}-\d{2}-\d{2}$/.test(tanggalMasuk) ? new Date(`${tanggalMasuk}T00:00:00`) : null;
+  if (!masuk || Number.isNaN(masuk.getTime()) || masuk < hariIni || masuk > batas) {
+    return sendError(res, 400, "TANGGAL_TIDAK_VALID", "Pilih tanggal masuk antara hari ini dan 6 bulan ke depan");
+  }
+  if (!Number.isInteger(durasi) || durasi < 1 || durasi > 12) {
+    return sendError(res, 400, "DURASI_TIDAK_VALID", "Pilih durasi sewa 1 sampai 12 bulan");
+  }
 
   const [rows] = await pool.query(
     `SELECT k.id_pemilik, k.status_verifikasi FROM tipe_kamar t JOIN kos k ON k.id_kos = t.id_kos
@@ -61,6 +91,11 @@ router.post("/", async (req, res) => {
   try {
     await conn.query("CALL sp_buat_booking(?, ?, @id_booking)", [req.user.id, idTipe]);
     const [[out]] = await conn.query("SELECT @id_booking AS id");
+    // Prosedur tetap satu-satunya jalur membuat booking; rencana tanggal masuk & durasi dilengkapi setelahnya
+    await conn.query(
+      "UPDATE booking SET tanggal_masuk = ?, durasi_sewa = ? WHERE id_booking = ? AND id_pencari_kos = ?",
+      [tanggalMasuk, durasi, out.id, req.user.id]
+    );
     res.status(201).json({ id: out.id, status: "menunggu" });
   } catch (err) {
     const mapped = ERROR_PROSEDUR[err.sqlMessage];

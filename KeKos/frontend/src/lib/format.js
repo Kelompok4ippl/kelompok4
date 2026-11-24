@@ -32,3 +32,39 @@ export function timeAgo(date) {
 }
 
 export const KOS_TYPE_LABEL = { putra: "Putra", putri: "Putri", campur: "Campur" };
+
+// Nama tampilan & nama ikon garis (LineIcon) untuk fasilitas dari database (panel pemilik)
+export function facilityLabel(name) {
+  return name.toLowerCase().includes("mandi dalam") ? "K.mandi dalam" : name;
+}
+
+export function facilityIcon(name) {
+  const key = name.toLowerCase();
+  if (key === "wifi") return "wifi";
+  if (key === "ac") return "snow";
+  if (key.includes("mandi")) return "shower";
+  return "tag";
+}
+
+// Tanggal lokal "YYYY-MM-DD" (untuk input type=date); addMonths opsional
+export function isoDate(date = new Date(), addMonths = 0) {
+  const d = new Date(date);
+  if (addMonths) d.setMonth(d.getMonth() + addMonths);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+// "29 November 2026"
+export function tanggalPanjang(date) {
+  if (!date) return "-";
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00`) : new Date(date);
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+}
+
+// Tanggal selesai sewa = tanggal masuk + durasi (bulan)
+export function tanggalSelesai(date, months) {
+  if (!date || !months) return null;
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00`) : new Date(date);
+  d.setMonth(d.getMonth() + Number(months));
+  return d;
+}
