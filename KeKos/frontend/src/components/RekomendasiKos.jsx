@@ -42,21 +42,27 @@ export default function RekomendasiKos() {
       <p className="mt-1 text-sm text-steel-muted">
         {lokasi.status === "ditolak"
           ? "Izin lokasi tidak diberikan, jadi rekomendasi diurutkan berdasarkan rating."
-          : "Kos terdekat dari lokasimu dengan rating tinggi, dinilai dengan logika fuzzy."}
+          : "Kos terdekat dari lokasimu dengan rating tinggi."}
       </p>
 
       <div aria-live="polite" className="mt-5">
         {(lokasi.status === "meminta" || rekom.loading) && <p className="text-sm text-steel-muted">Mencari rekomendasi...</p>}
 
         {lokasi.status === "gpsMati" && (
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-steel-line bg-white p-5">
-            <LineIcon name="pin" className="h-5 w-5 text-steel" />
-            <p className="flex-1 text-sm text-steel-body">Nyalakan GPS untuk rekomendasi terdekat</p>
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-steel-line bg-white px-6 py-8 text-center">
+            <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-full bg-steel-tint">
+              <LineIcon name="pin" className="h-6 w-6 text-steel" />
+            </span>
+            <p className="text-base font-semibold text-steel-ink">Nyalakan GPS untuk rekomendasi terdekat</p>
+            <p className="max-w-[420px] text-sm text-steel-muted">
+              Lokasimu dipakai untuk menghitung jarak ke setiap kos. Aktifkan GPS atau layanan lokasi di perangkatmu, lalu tekan Coba Lagi.
+            </p>
             <button
               type="button"
               onClick={cobaLagi}
-              className="min-h-11 rounded-xl bg-steel px-5 text-sm font-semibold text-white hover:bg-steel-strong"
+              className="mt-1 inline-flex min-h-11 items-center gap-2 rounded-xl bg-steel px-5 text-sm font-semibold text-white hover:bg-steel-strong"
             >
+              <LineIcon name="pin" className="h-4 w-4" />
               Coba Lagi
             </button>
           </div>
