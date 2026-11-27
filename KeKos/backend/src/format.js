@@ -6,7 +6,7 @@ const list = (text) => (text ? text.split(",").map((s) => s.trim()).filter(Boole
 // Jarak tidak disimpan di database dan tidak diisi pemilik, selalu dihitung dari koordinat.
 const KAMPUS = { lat: -7.3117, lng: 112.7275, nama: "Telkom University Surabaya" };
 
-function jarakMeter(a, b) {
+export function jarakMeter(a, b) {
   const rad = (d) => (d * Math.PI) / 180;
   const dLat = rad(b.lat - a.lat);
   const dLng = rad(b.lng - a.lng);

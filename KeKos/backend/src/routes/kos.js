@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { pool } from "../db.js";
 import { requireAuth, requirePeran, sendError } from "../middleware/auth.js";
-import { KOS_SELECT, TIPE_KAMAR_SELECT, toKos, toTipeKamar } from "../format.js";
+import { KOS_SELECT, TIPE_KAMAR_SELECT, jarakMeter, toKos, toTipeKamar } from "../format.js";
+import { skorFuzzy } from "../fuzzy.js";
 
 const router = Router();
 
@@ -32,6 +33,27 @@ router.get("/", async (req, res) => {
   const sql = `${KOS_SELECT} WHERE ${where.join(" AND ")}${having.length ? ` HAVING ${having.join(" AND ")}` : ""} ORDER BY k.id_kos`;
   const [rows] = await pool.query(sql, params);
   res.json(rows.map(toKos));
+});
+
+// GET /api/kos/rekomendasi?lat=-7.31&lng=112.72  (FR-08)
+// Dengan lokasi: skor fuzzy Sugeno dari jarak ke pengguna dan rating (lihat fuzzy.js).
+// Tanpa lokasi (izin ditolak): urut berdasarkan rating saja.
+router.get("/rekomendasi", async (req, res) => {
+  const adaLokasi = req.query.lat !== undefined || req.query.lng !== undefined;
+  const lat = Number(req.query.lat);
+  const lng = Number(req.query.lng);
+  if (adaLokasi && !(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) {
+    return sendError(res, 400, "LOKASI_TIDAK_VALID", "Koordinat lokasi tidak valid");
+  }
+  const [rows] = await pool.query(`${KOS_SELECT} WHERE k.status_verifikasi = 'terverifikasi'`);
+  const hasil = rows.map(toKos).map((kos) => {
+    if (!adaLokasi || kos.lat == null) return { ...kos, distanceKm: null, score: null };
+    const km = jarakMeter({ lat, lng }, kos) / 1000;
+    return { ...kos, distanceKm: Math.round(km * 100) / 100, score: skorFuzzy(km, kos.rating) };
+  });
+  // Kos tanpa koordinat (score null) di urutan bawah
+  hasil.sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || b.rating - a.rating || b.reviews - a.reviews);
+  res.json(hasil.slice(0, 8));
 });
 
 // ---------- Favorit ("Simpan") pencari kos ----------
@@ -110,9 +132,11 @@ router.post("/:id/ulasan", requireAuth, requirePeran("pencariKos"), async (req, 
   if (!penyewa.length) {
     return sendError(res, 403, "BUKAN_PENYEWA", "Hanya penyewa yang dapat memberi rating");
   }
+  // Satu rating per pencari per kos (uq_rating_pencari): kirim ulang = ganti rating lama
   await pool.query(
-    "INSERT INTO rating (id_kos, id_pencari_kos, nilai_rating, ulasan) VALUES (?, ?, ?, ?)",
-    [req.params.id, req.user.id, rating, isi || null]
+    `INSERT INTO rating (id_kos, id_pencari_kos, nilai_rating, ulasan) VALUES (?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE nilai_rating = ?, ulasan = ?, tanggal_rating = CURRENT_DATE`,
+    [req.params.id, req.user.id, rating, isi || null, rating, isi || null]
   );
   res.status(201).json({ ok: true });
 });

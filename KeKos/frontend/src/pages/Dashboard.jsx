@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Navbar from "../components/Navbar.jsx";
 import KosCard from "../components/KosCard.jsx";
 import KosMap from "../components/KosMap.jsx";
+import RekomendasiKos from "../components/RekomendasiKos.jsx";
 import TextRotate from "../components/ui/TextRotate.jsx";
 import { LineIcon } from "../components/Icon.jsx";
 import { useApi } from "../hooks/useApi.js";
@@ -211,6 +212,8 @@ export default function Dashboard({ notifOpenInitially = false }) {
             </dl>
           </div>
         </section>
+
+        <RekomendasiKos />
 
         {/* ---------- Peta persebaran ---------- */}
         <section id="peta" className="mx-auto max-w-[1240px] scroll-mt-20 px-4 pt-14 sm:px-6">

@@ -176,6 +176,7 @@ CREATE TABLE IF NOT EXISTS rating (
   ulasan         TEXT         NULL,
   tanggal_rating DATE         NOT NULL DEFAULT (CURRENT_DATE),
   PRIMARY KEY (id_rating),
+  UNIQUE KEY uq_rating_pencari (id_kos, id_pencari_kos),   -- satu pencari satu rating per kos
   KEY idx_rating_kos (id_kos),
   KEY idx_rating_pencari (id_pencari_kos),
   CONSTRAINT fk_rating_kos     FOREIGN KEY (id_kos)         REFERENCES kos (id_kos)
